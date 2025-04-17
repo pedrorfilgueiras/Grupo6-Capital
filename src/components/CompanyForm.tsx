@@ -21,6 +21,7 @@ const CompanyForm = () => {
   ]);
   
   const [cnpjError, setCnpjError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const handleCnpjChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const formattedCnpj = formatCNPJ(e.target.value);
@@ -77,7 +78,7 @@ const CompanyForm = () => {
     );
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateCNPJ(cnpj)) {
@@ -126,11 +127,13 @@ const CompanyForm = () => {
       }))
     };
     
+    setIsSubmitting(true);
+    
     try {
-      saveCompany(companyData);
+      await saveCompany(companyData);
       toast({
         title: "Sucesso",
-        description: "Dados da empresa salvos com sucesso!",
+        description: "Dados da empresa salvos com sucesso no Supabase!",
       });
       
       setCnpj('');
@@ -141,11 +144,14 @@ const CompanyForm = () => {
       setQsa([{ id: 'socio_1', nome: '', documento: '', participacao: 0 }]);
       
     } catch (error) {
+      console.error(error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar os dados.",
+        description: "Ocorreu um erro ao salvar os dados no Supabase.",
         variant: "destructive"
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
   
@@ -306,8 +312,21 @@ const CompanyForm = () => {
         </CardContent>
         
         <CardFooter className="border-t pt-6 flex justify-end">
-          <Button type="submit" className="bg-g6-blue hover:bg-g6-blue-light flex items-center gap-2">
-            <Save className="h-4 w-4" /> Salvar Empresa
+          <Button 
+            type="submit" 
+            className="bg-g6-blue hover:bg-g6-blue-light flex items-center gap-2"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                <span>Salvando...</span>
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" /> Salvar Empresa
+              </>
+            )}
           </Button>
         </CardFooter>
       </Card>

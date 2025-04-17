@@ -1,5 +1,8 @@
 
 // Types
+import { supabase } from '@/lib/supabase';
+import { toast } from '@/components/ui/use-toast';
+
 export interface CompanyData {
   id?: string;
   cnpj: string;
@@ -18,64 +21,120 @@ export interface QuadroSocietario {
   participacao: number;
 }
 
-// Use localStorage for now as a demonstration
-// In a real app, you would replace this with an API service
-
-// Save a company to storage
-export const saveCompany = (data: CompanyData): CompanyData => {
-  const companies = getCompanies();
-  
-  // Generate a unique ID if none exists
-  const newCompany = {
-    ...data,
-    id: data.id || `company_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-    createdAt: Date.now()
-  };
-  
-  // Check if company with this CNPJ already exists
-  const existingIndex = companies.findIndex(company => company.cnpj === data.cnpj);
-  
-  if (existingIndex >= 0) {
-    // Update existing company
-    companies[existingIndex] = newCompany;
-  } else {
-    // Add new company
-    companies.push(newCompany);
+// Save a company to Supabase
+export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
+  try {
+    const newCompany = {
+      ...data,
+      id: data.id || crypto.randomUUID(),
+      createdAt: Date.now()
+    };
+    
+    // Check if company with this CNPJ already exists
+    const { data: existingCompany } = await supabase
+      .from('companies')
+      .select('id')
+      .eq('cnpj', data.cnpj)
+      .maybeSingle();
+    
+    let result;
+    
+    if (existingCompany) {
+      // Update existing company
+      const { data: updatedCompany, error } = await supabase
+        .from('companies')
+        .update(newCompany)
+        .eq('id', existingCompany.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      result = updatedCompany;
+    } else {
+      // Add new company
+      const { data: insertedCompany, error } = await supabase
+        .from('companies')
+        .insert(newCompany)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      result = insertedCompany;
+    }
+    
+    return result as CompanyData;
+  } catch (error) {
+    console.error('Error saving company:', error);
+    throw error;
   }
-  
-  // Save to localStorage
-  localStorage.setItem('grupo6_companies', JSON.stringify(companies));
-  
-  return newCompany;
 };
 
-// Get all companies from storage
-export const getCompanies = (): CompanyData[] => {
-  const companiesData = localStorage.getItem('grupo6_companies');
-  return companiesData ? JSON.parse(companiesData) : [];
+// Get all companies from Supabase
+export const getCompanies = async (): Promise<CompanyData[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select('*')
+      .order('createdAt', { ascending: false });
+    
+    if (error) throw error;
+    
+    return data as CompanyData[];
+  } catch (error) {
+    console.error('Error fetching companies:', error);
+    return [];
+  }
 };
 
 // Get a specific company by ID
-export const getCompanyById = (id: string): CompanyData | null => {
-  const companies = getCompanies();
-  return companies.find(company => company.id === id) || null;
+export const getCompanyById = async (id: string): Promise<CompanyData | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) throw error;
+    
+    return data as CompanyData;
+  } catch (error) {
+    console.error('Error fetching company by ID:', error);
+    return null;
+  }
 };
 
 // Get a specific company by CNPJ
-export const getCompanyByCNPJ = (cnpj: string): CompanyData | null => {
-  const companies = getCompanies();
-  return companies.find(company => company.cnpj === cnpj) || null;
+export const getCompanyByCNPJ = async (cnpj: string): Promise<CompanyData | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('companies')
+      .select('*')
+      .eq('cnpj', cnpj)
+      .single();
+    
+    if (error && error.code !== 'PGRST116') throw error;
+    
+    return data as CompanyData || null;
+  } catch (error) {
+    console.error('Error fetching company by CNPJ:', error);
+    return null;
+  }
 };
 
 // Delete a company
-export const deleteCompany = (id: string): boolean => {
-  const companies = getCompanies();
-  const filteredCompanies = companies.filter(company => company.id !== id);
-  
-  if (filteredCompanies.length < companies.length) {
-    localStorage.setItem('grupo6_companies', JSON.stringify(filteredCompanies));
+export const deleteCompany = async (id: string): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('companies')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    
     return true;
+  } catch (error) {
+    console.error('Error deleting company:', error);
+    return false;
   }
-  
-  return false;
 };

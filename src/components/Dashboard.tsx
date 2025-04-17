@@ -18,7 +18,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { CompanyData, getCompanies } from '@/services/storageService';
 import { 
   BarChart, 
@@ -33,7 +32,7 @@ import {
   Pie,
   Legend
 } from 'recharts';
-import { Search, Filter } from 'lucide-react';
+import { Search, LoaderCircle } from 'lucide-react';
 
 const Dashboard = () => {
   const [companies, setCompanies] = useState<CompanyData[]>([]);
@@ -41,15 +40,27 @@ const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBy, setFilterBy] = useState('all');
   const [filterValue, setFilterValue] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   
   // Colors for charts
   const COLORS = ['#1a3a5f', '#2d5f8e', '#4682b4', '#6495ed', '#87ceeb'];
   
   useEffect(() => {
     // Load companies when component mounts
-    const loadedCompanies = getCompanies();
-    setCompanies(loadedCompanies);
-    setFilteredCompanies(loadedCompanies);
+    const fetchCompanies = async () => {
+      setIsLoading(true);
+      try {
+        const loadedCompanies = await getCompanies();
+        setCompanies(loadedCompanies);
+        setFilteredCompanies(loadedCompanies);
+      } catch (error) {
+        console.error("Error loading companies:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchCompanies();
   }, []);
   
   useEffect(() => {
@@ -121,6 +132,17 @@ const Dashboard = () => {
   const formatPercentage = (value: number) => {
     return `${value.toFixed(2)}%`;
   };
+  
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-60">
+        <div className="flex flex-col items-center space-y-4">
+          <LoaderCircle className="h-10 w-10 animate-spin text-g6-blue" />
+          <p className="text-g6-blue font-medium">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="space-y-6">
