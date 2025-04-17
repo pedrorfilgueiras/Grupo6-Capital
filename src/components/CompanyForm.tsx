@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ const CompanyForm = () => {
     const formattedCnpj = formatCNPJ(e.target.value);
     setCnpj(formattedCnpj);
     
-    // Clear error when user starts typing again
     if (cnpjError) setCnpjError('');
   };
   
@@ -82,7 +80,6 @@ const CompanyForm = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate CNPJ
     if (!validateCNPJ(cnpj)) {
       setCnpjError('CNPJ inválido');
       toast({
@@ -93,7 +90,6 @@ const CompanyForm = () => {
       return;
     }
     
-    // Validate required fields
     if (!razaoSocial) {
       toast({
         title: "Erro",
@@ -103,7 +99,6 @@ const CompanyForm = () => {
       return;
     }
     
-    // Validate QSA
     const isQsaValid = qsa.every(socio => 
       socio.nome && socio.documento && socio.participacao > 0
     );
@@ -117,7 +112,6 @@ const CompanyForm = () => {
       return;
     }
     
-    // Prepare data for submission
     const companyData: CompanyData = {
       cnpj,
       razaoSocial,
@@ -127,12 +121,11 @@ const CompanyForm = () => {
       qsa: qsa.map(socio => ({
         ...socio,
         participacao: typeof socio.participacao === 'string' 
-          ? parsePercentage(socio.participacao.toString()) 
+          ? parsePercentage(socio.participacao as string) 
           : socio.participacao
       }))
     };
     
-    // Save the company data
     try {
       saveCompany(companyData);
       toast({
@@ -140,7 +133,6 @@ const CompanyForm = () => {
         description: "Dados da empresa salvos com sucesso!",
       });
       
-      // Reset form (optional)
       setCnpj('');
       setRazaoSocial('');
       setFaturamentoAnual('');
@@ -168,7 +160,6 @@ const CompanyForm = () => {
         </CardHeader>
         
         <CardContent className="space-y-6 pt-6">
-          {/* Dados Cadastrais */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-g6-blue">Dados Cadastrais</h3>
             
@@ -198,7 +189,6 @@ const CompanyForm = () => {
             </div>
           </div>
           
-          {/* Dados Financeiros */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-g6-blue">Dados Financeiros</h3>
             
@@ -241,7 +231,6 @@ const CompanyForm = () => {
             </div>
           </div>
           
-          {/* Quadro Societário */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-g6-blue">Quadro Societário</h3>
