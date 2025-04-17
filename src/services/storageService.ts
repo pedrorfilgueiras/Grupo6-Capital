@@ -21,7 +21,18 @@ export interface QuadroSocietario {
   participacao: number;
 }
 
-// Save a company to Supabase
+// Fallback to localStorage if Supabase is not available
+const isSupabaseAvailable = async (): Promise<boolean> => {
+  try {
+    const { data, error } = await supabase.from('companies').select('id').limit(1);
+    return !error;
+  } catch (err) {
+    console.error('Supabase not available:', err);
+    return false;
+  }
+};
+
+// Save a company to Supabase or localStorage as fallback
 export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
   try {
     const newCompany = {
@@ -30,56 +41,91 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
       createdAt: Date.now()
     };
     
-    // Check if company with this CNPJ already exists
-    const { data: existingCompany } = await supabase
-      .from('companies')
-      .select('id')
-      .eq('cnpj', data.cnpj)
-      .maybeSingle();
+    const supabaseAvailable = await isSupabaseAvailable();
     
-    let result;
-    
-    if (existingCompany) {
-      // Update existing company
-      const { data: updatedCompany, error } = await supabase
+    if (supabaseAvailable) {
+      // Check if company with this CNPJ already exists
+      const { data: existingCompany } = await supabase
         .from('companies')
-        .update(newCompany)
-        .eq('id', existingCompany.id)
-        .select()
-        .single();
+        .select('id')
+        .eq('cnpj', data.cnpj)
+        .maybeSingle();
       
-      if (error) throw error;
-      result = updatedCompany;
+      let result;
+      
+      if (existingCompany) {
+        // Update existing company
+        const { data: updatedCompany, error } = await supabase
+          .from('companies')
+          .update(newCompany)
+          .eq('id', existingCompany.id)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = updatedCompany;
+      } else {
+        // Add new company
+        const { data: insertedCompany, error } = await supabase
+          .from('companies')
+          .insert(newCompany)
+          .select()
+          .single();
+        
+        if (error) throw error;
+        result = insertedCompany;
+      }
+      
+      return result as CompanyData;
     } else {
-      // Add new company
-      const { data: insertedCompany, error } = await supabase
-        .from('companies')
-        .insert(newCompany)
-        .select()
-        .single();
+      // Fallback to localStorage
+      console.warn('Using localStorage as fallback for Supabase');
       
-      if (error) throw error;
-      result = insertedCompany;
+      // Get existing companies from localStorage
+      const existingCompanies = JSON.parse(localStorage.getItem('companies') || '[]');
+      
+      // Check if company with this CNPJ already exists
+      const existingIndex = existingCompanies.findIndex((c: CompanyData) => c.cnpj === data.cnpj);
+      
+      if (existingIndex >= 0) {
+        // Update existing company
+        existingCompanies[existingIndex] = newCompany;
+      } else {
+        // Add new company
+        existingCompanies.push(newCompany);
+      }
+      
+      // Save updated companies to localStorage
+      localStorage.setItem('companies', JSON.stringify(existingCompanies));
+      
+      return newCompany;
     }
-    
-    return result as CompanyData;
   } catch (error) {
     console.error('Error saving company:', error);
     throw error;
   }
 };
 
-// Get all companies from Supabase
+// Get all companies from Supabase or localStorage as fallback
 export const getCompanies = async (): Promise<CompanyData[]> => {
   try {
-    const { data, error } = await supabase
-      .from('companies')
-      .select('*')
-      .order('createdAt', { ascending: false });
+    const supabaseAvailable = await isSupabaseAvailable();
     
-    if (error) throw error;
-    
-    return data as CompanyData[];
+    if (supabaseAvailable) {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .order('createdAt', { ascending: false });
+      
+      if (error) throw error;
+      
+      return data as CompanyData[];
+    } else {
+      // Fallback to localStorage
+      console.warn('Using localStorage as fallback for Supabase');
+      const companies = JSON.parse(localStorage.getItem('companies') || '[]');
+      return companies;
+    }
   } catch (error) {
     console.error('Error fetching companies:', error);
     return [];
@@ -89,15 +135,24 @@ export const getCompanies = async (): Promise<CompanyData[]> => {
 // Get a specific company by ID
 export const getCompanyById = async (id: string): Promise<CompanyData | null> => {
   try {
-    const { data, error } = await supabase
-      .from('companies')
-      .select('*')
-      .eq('id', id)
-      .single();
+    const supabaseAvailable = await isSupabaseAvailable();
     
-    if (error) throw error;
-    
-    return data as CompanyData;
+    if (supabaseAvailable) {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) throw error;
+      
+      return data as CompanyData;
+    } else {
+      // Fallback to localStorage
+      console.warn('Using localStorage as fallback for Supabase');
+      const companies = JSON.parse(localStorage.getItem('companies') || '[]');
+      return companies.find((c: CompanyData) => c.id === id) || null;
+    }
   } catch (error) {
     console.error('Error fetching company by ID:', error);
     return null;
@@ -107,15 +162,24 @@ export const getCompanyById = async (id: string): Promise<CompanyData | null> =>
 // Get a specific company by CNPJ
 export const getCompanyByCNPJ = async (cnpj: string): Promise<CompanyData | null> => {
   try {
-    const { data, error } = await supabase
-      .from('companies')
-      .select('*')
-      .eq('cnpj', cnpj)
-      .single();
+    const supabaseAvailable = await isSupabaseAvailable();
     
-    if (error && error.code !== 'PGRST116') throw error;
-    
-    return data as CompanyData || null;
+    if (supabaseAvailable) {
+      const { data, error } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('cnpj', cnpj)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      return data as CompanyData || null;
+    } else {
+      // Fallback to localStorage
+      console.warn('Using localStorage as fallback for Supabase');
+      const companies = JSON.parse(localStorage.getItem('companies') || '[]');
+      return companies.find((c: CompanyData) => c.cnpj === cnpj) || null;
+    }
   } catch (error) {
     console.error('Error fetching company by CNPJ:', error);
     return null;
@@ -125,14 +189,25 @@ export const getCompanyByCNPJ = async (cnpj: string): Promise<CompanyData | null
 // Delete a company
 export const deleteCompany = async (id: string): Promise<boolean> => {
   try {
-    const { error } = await supabase
-      .from('companies')
-      .delete()
-      .eq('id', id);
+    const supabaseAvailable = await isSupabaseAvailable();
     
-    if (error) throw error;
-    
-    return true;
+    if (supabaseAvailable) {
+      const { error } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+      
+      return true;
+    } else {
+      // Fallback to localStorage
+      console.warn('Using localStorage as fallback for Supabase');
+      const companies = JSON.parse(localStorage.getItem('companies') || '[]');
+      const filteredCompanies = companies.filter((c: CompanyData) => c.id !== id);
+      localStorage.setItem('companies', JSON.stringify(filteredCompanies));
+      return true;
+    }
   } catch (error) {
     console.error('Error deleting company:', error);
     return false;
