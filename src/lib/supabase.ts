@@ -2,13 +2,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { CompanyData } from '@/services/storageService';
 
-// Provide default values for development environment
+// Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
-// Log warning if using default credentials
+// Log warning if using default credentials in development
 if (import.meta.env.DEV && 
-    (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY)) {
+    (supabaseUrl === 'https://your-project-url.supabase.co' || 
+     supabaseAnonKey === 'your-anon-key')) {
   console.warn('Using default Supabase credentials for development. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables for production use.');
 }
 

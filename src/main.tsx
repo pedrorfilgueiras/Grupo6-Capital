@@ -14,7 +14,9 @@ const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 
 // Show a helpful message if Supabase keys are missing
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseAnonKey || 
+    supabaseUrl === 'https://your-project-url.supabase.co' || 
+    supabaseAnonKey === 'your-anon-key') {
   // Wait a bit to ensure the toast component is mounted
   setTimeout(() => {
     toast({

@@ -24,6 +24,17 @@ export interface QuadroSocietario {
 // Fallback to localStorage if Supabase is not available
 const isSupabaseAvailable = async (): Promise<boolean> => {
   try {
+    // First check if we have valid credentials
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey || 
+        supabaseUrl === 'https://your-project-url.supabase.co' || 
+        supabaseAnonKey === 'your-anon-key') {
+      return false;
+    }
+    
+    // Then try to connect to the database
     const { data, error } = await supabase.from('companies').select('id').limit(1);
     return !error;
   } catch (err) {
@@ -64,6 +75,11 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
         
         if (error) throw error;
         result = updatedCompany;
+        
+        toast({
+          title: "Sucesso",
+          description: "Empresa atualizada com sucesso no Supabase!",
+        });
       } else {
         // Add new company
         const { data: insertedCompany, error } = await supabase
@@ -74,6 +90,11 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
         
         if (error) throw error;
         result = insertedCompany;
+        
+        toast({
+          title: "Sucesso",
+          description: "Empresa cadastrada com sucesso no Supabase!",
+        });
       }
       
       return result as CompanyData;
@@ -90,9 +111,17 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
       if (existingIndex >= 0) {
         // Update existing company
         existingCompanies[existingIndex] = newCompany;
+        toast({
+          title: "Sucesso", 
+          description: "Empresa atualizada com sucesso (localStorage)!"
+        });
       } else {
         // Add new company
         existingCompanies.push(newCompany);
+        toast({
+          title: "Sucesso", 
+          description: "Empresa cadastrada com sucesso (localStorage)!"
+        });
       }
       
       // Save updated companies to localStorage
@@ -102,6 +131,11 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
     }
   } catch (error) {
     console.error('Error saving company:', error);
+    toast({
+      title: "Erro",
+      description: "Ocorreu um erro ao salvar os dados da empresa.",
+      variant: "destructive"
+    });
     throw error;
   }
 };
@@ -128,6 +162,11 @@ export const getCompanies = async (): Promise<CompanyData[]> => {
     }
   } catch (error) {
     console.error('Error fetching companies:', error);
+    toast({
+      title: "Erro",
+      description: "Ocorreu um erro ao carregar as empresas.",
+      variant: "destructive"
+    });
     return [];
   }
 };
