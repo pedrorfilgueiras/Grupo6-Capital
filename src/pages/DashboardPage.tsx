@@ -1,14 +1,14 @@
 
 import React from 'react';
 import Header from '@/components/Header';
-import CompanyForm from '@/components/CompanyForm';
+import Dashboard from '@/components/Dashboard';
 
-const Index = () => {
+const DashboardPage = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 container mx-auto py-8 px-4 md:px-0">
-        <CompanyForm />
+        <Dashboard />
       </main>
       <footer className="bg-g6-gray-dark text-white text-center py-4">
         <div className="container mx-auto">
@@ -19,4 +19,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default DashboardPage;

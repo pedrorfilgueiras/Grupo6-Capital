@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,14 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom colors for Grupo6 Capital
+				g6: {
+					'blue': '#1a3a5f',
+					'blue-light': '#2d5f8e',
+					'gray-dark': '#333333',
+					'gray': '#6b7280',
+					'gray-light': '#e5e7eb'
 				}
 			},
 			borderRadius: {
