@@ -7,9 +7,20 @@ export interface CompanyData {
   id?: string;
   cnpj: string;
   razaoSocial: string;
-  faturamentoAnual: number;
-  margem: number;
-  ebitda: number;
+  setor: string;
+  subsetor: string;
+  arrFy24: number; // Annual Recurring Revenue FY24 (US$)
+  receitaBrutaFy24: number; // Gross Revenue FY24 (US$)
+  faturamentoAnual: number; // Legacy field
+  margem: number; // Legacy field - EBITDA Margin (%)
+  margemEbitda: number; // EBITDA Margin (%)
+  crescimentoReceita: number; // Revenue Growth (%)
+  ebitda: number; // Legacy field
+  valuationMultiplo: number; // EV/Revenue multiple
+  riscoOperacional: string; // Operational Risk (Alto, Médio, Baixo)
+  insightsQualitativos: string; // Qualitative Insights
+  nota: number; // Score (0-10)
+  statusAprovacao: string; // Approval Status (Aprovado, Em Avaliação, Não Aprovado)
   qsa: QuadroSocietario[];
   createdAt?: number;
 }
@@ -250,5 +261,70 @@ export const deleteCompany = async (id: string): Promise<boolean> => {
   } catch (error) {
     console.error('Error deleting company:', error);
     return false;
+  }
+};
+
+// Utility function for ranking companies based on criteria
+export const getRankedCompanies = (companies: CompanyData[], weights: Record<string, number> = {}): CompanyData[] => {
+  // Default weights if not provided
+  const defaultWeights = {
+    nota: 30,              // Score weight
+    margemEbitda: 20,      // EBITDA margin weight
+    crescimentoReceita: 20, // Revenue growth weight
+    valuationMultiplo: 15, // Valuation multiple weight
+    riscoOperacional: 15   // Operational risk weight (will be converted to number)
+  };
+  
+  // Merge provided weights with defaults
+  const finalWeights = { ...defaultWeights, ...weights };
+  
+  // Convert risk level to numeric value
+  const riskToNumber = (risk: string): number => {
+    switch(risk.toLowerCase()) {
+      case 'baixo': return 10;  // Low risk
+      case 'médio': return 5;   // Medium risk
+      case 'alto': return 1;    // High risk
+      default: return 5;        // Default medium
+    }
+  };
+  
+  // Calculate weighted score for each company
+  const companiesWithRank = companies.map(company => {
+    // Convert risk to numeric value
+    const riskScore = riskToNumber(company.riscoOperacional || 'médio');
+    
+    // Calculate weighted score components
+    const scoreComponent = (company.nota || 0) * (finalWeights.nota / 100);
+    const marginComponent = (company.margemEbitda || 0) * (finalWeights.margemEbitda / 100);
+    const growthComponent = (company.crescimentoReceita || 0) * (finalWeights.crescimentoReceita / 1000); // Adjust for percentage
+    const valuationComponent = 10 - Math.min((company.valuationMultiplo || 0), 10) * (finalWeights.valuationMultiplo / 100); // Lower is better
+    const riskComponent = riskScore * (finalWeights.riscoOperacional / 100);
+    
+    // Calculate total weighted score
+    const weightedScore = scoreComponent + marginComponent + growthComponent + valuationComponent + riskComponent;
+    
+    return {
+      ...company,
+      weightedScore: parseFloat(weightedScore.toFixed(2))
+    };
+  });
+  
+  // Sort by weighted score (descending)
+  return companiesWithRank.sort((a, b) => (b.weightedScore || 0) - (a.weightedScore || 0));
+};
+
+// Get sectors and subsectors for filtering
+export const getSectorsAndSubsectors = async (): Promise<{sectors: string[], subsectors: string[]}> => {
+  try {
+    const companies = await getCompanies();
+    
+    // Extract unique sectors and subsectors
+    const sectors = [...new Set(companies.map(c => c.setor).filter(Boolean))];
+    const subsectors = [...new Set(companies.map(c => c.subsetor).filter(Boolean))];
+    
+    return { sectors, subsectors };
+  } catch (error) {
+    console.error('Error getting sectors and subsectors:', error);
+    return { sectors: [], subsectors: [] };
   }
 };

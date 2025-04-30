@@ -1,8 +1,11 @@
+
 import React, { useState } from 'react';
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, X, Save } from 'lucide-react';
 import { validateCNPJ, formatCNPJ, formatCurrency, formatPercentage, parseCurrency, parsePercentage } from '@/utils/validation';
@@ -11,6 +14,7 @@ import { CompanyData, QuadroSocietario, saveCompany } from '@/services/storageSe
 const CompanyForm = () => {
   const { toast } = useToast();
   
+  // Campos existentes
   const [cnpj, setCnpj] = useState('');
   const [razaoSocial, setRazaoSocial] = useState('');
   const [faturamentoAnual, setFaturamentoAnual] = useState('');
@@ -19,6 +23,19 @@ const CompanyForm = () => {
   const [qsa, setQsa] = useState<QuadroSocietario[]>([
     { id: 'socio_1', nome: '', documento: '', participacao: 0 }
   ]);
+  
+  // Novos campos
+  const [setor, setSetor] = useState('');
+  const [subsetor, setSubsetor] = useState('');
+  const [arrFy24, setArrFy24] = useState('');
+  const [receitaBrutaFy24, setReceitaBrutaFy24] = useState('');
+  const [margemEbitda, setMargemEbitda] = useState('');
+  const [crescimentoReceita, setCrescimentoReceita] = useState('');
+  const [valuationMultiplo, setValuationMultiplo] = useState('');
+  const [riscoOperacional, setRiscoOperacional] = useState('Médio');
+  const [insightsQualitativos, setInsightsQualitativos] = useState('');
+  const [nota, setNota] = useState('');
+  const [statusAprovacao, setStatusAprovacao] = useState('Em Avaliação');
   
   const [cnpjError, setCnpjError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -116,9 +133,20 @@ const CompanyForm = () => {
     const companyData: CompanyData = {
       cnpj,
       razaoSocial,
+      setor,
+      subsetor,
       faturamentoAnual: parseCurrency(faturamentoAnual),
+      arrFy24: parseCurrency(arrFy24) || 0,
+      receitaBrutaFy24: parseCurrency(receitaBrutaFy24) || 0,
       margem: parsePercentage(margem),
+      margemEbitda: parsePercentage(margemEbitda) || parsePercentage(margem) || 0,
+      crescimentoReceita: parsePercentage(crescimentoReceita) || 0,
       ebitda: parseCurrency(ebitda),
+      valuationMultiplo: parseFloat(valuationMultiplo) || 0,
+      riscoOperacional: riscoOperacional || 'Médio',
+      insightsQualitativos: insightsQualitativos || '',
+      nota: parseFloat(nota || '0'),
+      statusAprovacao: statusAprovacao || 'Em Avaliação',
       qsa: qsa.map(socio => ({
         ...socio,
         participacao: typeof socio.participacao === 'string' 
@@ -133,21 +161,33 @@ const CompanyForm = () => {
       await saveCompany(companyData);
       toast({
         title: "Sucesso",
-        description: "Dados da empresa salvos com sucesso no Supabase!",
+        description: "Dados da empresa salvos com sucesso!",
       });
       
+      // Limpar formulário
       setCnpj('');
       setRazaoSocial('');
+      setSetor('');
+      setSubsetor('');
       setFaturamentoAnual('');
+      setArrFy24('');
+      setReceitaBrutaFy24('');
       setMargem('');
+      setMargemEbitda('');
+      setCrescimentoReceita('');
       setEbitda('');
+      setValuationMultiplo('');
+      setRiscoOperacional('Médio');
+      setInsightsQualitativos('');
+      setNota('');
+      setStatusAprovacao('Em Avaliação');
       setQsa([{ id: 'socio_1', nome: '', documento: '', participacao: 0 }]);
       
     } catch (error) {
       console.error(error);
       toast({
         title: "Erro",
-        description: "Ocorreu um erro ao salvar os dados no Supabase.",
+        description: "Ocorreu um erro ao salvar os dados.",
         variant: "destructive"
       });
     } finally {
@@ -166,6 +206,7 @@ const CompanyForm = () => {
         </CardHeader>
         
         <CardContent className="space-y-6 pt-6">
+          {/* Dados Cadastrais */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-g6-blue">Dados Cadastrais</h3>
             
@@ -193,12 +234,59 @@ const CompanyForm = () => {
                 />
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="setor">Setor</Label>
+                <Input
+                  id="setor"
+                  value={setor}
+                  onChange={(e) => setSetor(e.target.value)}
+                  placeholder="Ex: Tecnologia, Financeiro, etc."
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="subsetor">Subsetor</Label>
+                <Input
+                  id="subsetor"
+                  value={subsetor}
+                  onChange={(e) => setSubsetor(e.target.value)}
+                  placeholder="Ex: SaaS, Fintech, etc."
+                />
+              </div>
+            </div>
           </div>
           
+          {/* Dados Financeiros */}
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-g6-blue">Dados Financeiros</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="arrFy24">ARR FY24 (US$)</Label>
+                <div className="currency-input">
+                  <Input
+                    id="arrFy24"
+                    value={arrFy24}
+                    onChange={(e) => handleCurrencyChange(e, setArrFy24)}
+                    placeholder="0,00"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="receitaBrutaFy24">Receita Bruta FY24 (US$)</Label>
+                <div className="currency-input">
+                  <Input
+                    id="receitaBrutaFy24"
+                    value={receitaBrutaFy24}
+                    onChange={(e) => handleCurrencyChange(e, setReceitaBrutaFy24)}
+                    placeholder="0,00"
+                  />
+                </div>
+              </div>
+              
               <div className="space-y-2">
                 <Label htmlFor="faturamentoAnual">Faturamento Anual (R$)</Label>
                 <div className="currency-input">
@@ -210,14 +298,28 @@ const CompanyForm = () => {
                   />
                 </div>
               </div>
-              
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="margem">Margem (%)</Label>
+                <Label htmlFor="margemEbitda">Margem EBITDA (%)</Label>
                 <div className="percentage-input">
                   <Input
-                    id="margem"
-                    value={margem}
-                    onChange={(e) => handlePercentageChange(e, setMargem)}
+                    id="margemEbitda"
+                    value={margemEbitda}
+                    onChange={(e) => handlePercentageChange(e, setMargemEbitda)}
+                    placeholder="0,00"
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="crescimentoReceita">Crescimento Receita (%)</Label>
+                <div className="percentage-input">
+                  <Input
+                    id="crescimentoReceita"
+                    value={crescimentoReceita}
+                    onChange={(e) => handlePercentageChange(e, setCrescimentoReceita)}
                     placeholder="0,00"
                   />
                 </div>
@@ -235,8 +337,96 @@ const CompanyForm = () => {
                 </div>
               </div>
             </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="valuationMultiplo">Valuation (múltiplo EV/Receita)</Label>
+                <Input
+                  id="valuationMultiplo"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={valuationMultiplo}
+                  onChange={(e) => setValuationMultiplo(e.target.value)}
+                  placeholder="Ex: 5.0"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="riscoOperacional">Risco Operacional</Label>
+                <Select value={riscoOperacional} onValueChange={setRiscoOperacional}>
+                  <SelectTrigger id="riscoOperacional">
+                    <SelectValue placeholder="Selecione o nível de risco" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Baixo">Baixo</SelectItem>
+                    <SelectItem value="Médio">Médio</SelectItem>
+                    <SelectItem value="Alto">Alto</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="margem">Margem (%)</Label>
+                <div className="percentage-input">
+                  <Input
+                    id="margem"
+                    value={margem}
+                    onChange={(e) => handlePercentageChange(e, setMargem)}
+                    placeholder="0,00"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
           
+          {/* Avaliação */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-g6-blue">Avaliação</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nota">Nota (0-10)</Label>
+                <Input
+                  id="nota"
+                  type="number"
+                  min="0"
+                  max="10"
+                  step="0.1"
+                  value={nota}
+                  onChange={(e) => setNota(e.target.value)}
+                  placeholder="Ex: 7.5"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="statusAprovacao">Status de Aprovação</Label>
+                <Select value={statusAprovacao} onValueChange={setStatusAprovacao}>
+                  <SelectTrigger id="statusAprovacao">
+                    <SelectValue placeholder="Selecione o status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Aprovado">Aprovado</SelectItem>
+                    <SelectItem value="Em Avaliação">Em Avaliação</SelectItem>
+                    <SelectItem value="Não Aprovado">Não Aprovado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="insightsQualitativos">Insights Qualitativos</Label>
+              <Textarea
+                id="insightsQualitativos"
+                value={insightsQualitativos}
+                onChange={(e) => setInsightsQualitativos(e.target.value)}
+                placeholder="Insira observações qualitativas sobre a empresa..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          
+          {/* Quadro Societário */}
           <div className="space-y-4">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-g6-blue">Quadro Societário</h3>
@@ -251,7 +441,7 @@ const CompanyForm = () => {
               </Button>
             </div>
             
-            {qsa.map((socio, index) => (
+            {qsa.map((socio) => (
               <div key={socio.id} className="border p-4 rounded-md relative">
                 {qsa.length > 1 && (
                   <Button
