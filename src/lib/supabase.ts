@@ -24,7 +24,44 @@ export const initializeSupabase = async () => {
       .limit(1);
 
     if (error && error.code === '42P01') {
-      console.log('Companies table does not exist. Please create it in the Supabase dashboard.');
+      console.log('Companies table does not exist. Creating schema...');
+      console.log(`
+To create the required companies table in Supabase, run this SQL in the Supabase SQL editor:
+
+CREATE TABLE IF NOT EXISTS public.companies (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    cnpj TEXT NOT NULL,
+    razaoSocial TEXT NOT NULL,
+    setor TEXT,
+    subsetor TEXT,
+    arrFy24 NUMERIC,
+    receitaBrutaFy24 NUMERIC,
+    faturamentoAnual NUMERIC,
+    margem NUMERIC,
+    margemEbitda NUMERIC,
+    crescimentoReceita NUMERIC,
+    ebitda NUMERIC,
+    valuationMultiplo NUMERIC,
+    riscoOperacional TEXT,
+    insightsQualitativos TEXT,
+    nota NUMERIC,
+    statusAprovacao TEXT,
+    qsa JSONB,
+    createdAt BIGINT,
+    weightedScore NUMERIC
+);
+
+-- Add a unique constraint on cnpj
+CREATE UNIQUE INDEX IF NOT EXISTS companies_cnpj_idx ON public.companies (cnpj);
+
+-- Enable Row Level Security
+ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
+
+-- Create a policy that allows all operations for now (you can restrict this later)
+CREATE POLICY "Allow full access to companies" ON public.companies
+    USING (true)
+    WITH CHECK (true);
+      `);
     }
   } catch (err) {
     console.error('Failed to initialize Supabase:', err);

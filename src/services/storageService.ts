@@ -66,6 +66,8 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
     const supabaseAvailable = await isSupabaseAvailable();
     
     if (supabaseAvailable) {
+      console.log("Saving to Supabase:", newCompany);
+      
       // Check if company with this CNPJ already exists
       const { data: existingCompany } = await supabase
         .from('companies')
@@ -84,7 +86,10 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
           .select()
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase update error:", error);
+          throw error;
+        }
         result = updatedCompany;
         
         toast({
@@ -99,7 +104,10 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
           .select()
           .single();
         
-        if (error) throw error;
+        if (error) {
+          console.error("Supabase insert error:", error);
+          throw error;
+        }
         result = insertedCompany;
         
         toast({
