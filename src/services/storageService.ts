@@ -1,4 +1,3 @@
-
 // Types
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
@@ -23,6 +22,7 @@ export interface CompanyData {
   statusAprovacao: string; // Approval Status (Aprovado, Em Avaliação, Não Aprovado)
   qsa: QuadroSocietario[];
   createdAt?: number;
+  weightedScore?: number; // Added to fix TypeScript error in RankingSystem component
 }
 
 export interface QuadroSocietario {
