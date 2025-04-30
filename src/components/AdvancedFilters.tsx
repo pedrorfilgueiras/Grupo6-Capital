@@ -74,7 +74,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {sectors.map((sector) => (
                     <SelectItem key={sector} value={sector}>
                       {sector}
@@ -94,7 +94,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   {subsectors.map((subsector) => (
                     <SelectItem key={subsector} value={subsector}>
                       {subsector}
@@ -114,7 +114,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="Aprovado">Aprovado</SelectItem>
                   <SelectItem value="Em Avaliação">Em Avaliação</SelectItem>
                   <SelectItem value="Não Aprovado">Não Aprovado</SelectItem>
@@ -225,7 +225,7 @@ const AdvancedFilters: React.FC<AdvancedFiltersProps> = ({
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
                   <SelectItem value="Baixo">Baixo</SelectItem>
                   <SelectItem value="Médio">Médio</SelectItem>
                   <SelectItem value="Alto">Alto</SelectItem>
