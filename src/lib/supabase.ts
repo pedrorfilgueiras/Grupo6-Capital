@@ -1,6 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
-import type { CompanyData } from '@/services/storageService';
+import type { CompanyData } from '@/services/types';
 import { toast } from '@/components/ui/use-toast';
 
 // Get Supabase credentials from environment variables

@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { PlusCircle, X, Save } from 'lucide-react';
 import { validateCNPJ, formatCNPJ, formatCurrency, formatPercentage, parseCurrency, parsePercentage } from '@/utils/validation';
-import { CompanyData, QuadroSocietario, saveCompany } from '@/services/storageService';
+import { CompanyData, QuadroSocietario } from '@/services/types';
+import { saveCompany } from '@/services/companyService';
 
 const CompanyForm = () => {
   const { toast } = useToast();
