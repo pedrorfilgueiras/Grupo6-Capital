@@ -32,7 +32,7 @@ export interface QuadroSocietario {
   participacao: number;
 }
 
-// Fallback to localStorage if Supabase is not available
+// Checar se o Supabase está configurado e disponível
 const isSupabaseAvailable = async (): Promise<boolean> => {
   try {
     // First check if we have valid credentials
@@ -42,14 +42,22 @@ const isSupabaseAvailable = async (): Promise<boolean> => {
     if (!supabaseUrl || !supabaseAnonKey || 
         supabaseUrl === 'https://your-project-url.supabase.co' || 
         supabaseAnonKey === 'your-anon-key') {
+      console.warn('Credenciais do Supabase inválidas ou não configuradas. Usando localStorage como fallback.');
       return false;
     }
     
     // Then try to connect to the database
     const { data, error } = await supabase.from('companies').select('id').limit(1);
-    return !error;
+    
+    if (error) {
+      console.error('Erro ao conectar ao Supabase:', error.message);
+      return false;
+    }
+    
+    console.log('Supabase conectado com sucesso!');
+    return true;
   } catch (err) {
-    console.error('Supabase not available:', err);
+    console.error('Supabase não disponível:', err);
     return false;
   }
 };
@@ -66,7 +74,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
     const supabaseAvailable = await isSupabaseAvailable();
     
     if (supabaseAvailable) {
-      console.log("Saving to Supabase:", newCompany);
+      console.log("Salvando no Supabase:", newCompany);
       
       // Check if company with this CNPJ already exists
       const { data: existingCompany } = await supabase
@@ -87,7 +95,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
           .single();
         
         if (error) {
-          console.error("Supabase update error:", error);
+          console.error("Erro ao atualizar no Supabase:", error);
           throw error;
         }
         result = updatedCompany;
@@ -105,7 +113,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
           .single();
         
         if (error) {
-          console.error("Supabase insert error:", error);
+          console.error("Erro ao inserir no Supabase:", error);
           throw error;
         }
         result = insertedCompany;
@@ -119,7 +127,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
       return result as CompanyData;
     } else {
       // Fallback to localStorage
-      console.warn('Using localStorage as fallback for Supabase');
+      console.warn('Usando localStorage como fallback para armazenamento. OS DADOS NÃO SERÃO COMPARTILHADOS ENTRE USUÁRIOS.');
       
       // Get existing companies from localStorage
       const existingCompanies = JSON.parse(localStorage.getItem('companies') || '[]');
@@ -149,7 +157,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
       return newCompany;
     }
   } catch (error) {
-    console.error('Error saving company:', error);
+    console.error('Erro ao salvar empresa:', error);
     toast({
       title: "Erro",
       description: "Ocorreu um erro ao salvar os dados da empresa.",
@@ -175,12 +183,12 @@ export const getCompanies = async (): Promise<CompanyData[]> => {
       return data as CompanyData[];
     } else {
       // Fallback to localStorage
-      console.warn('Using localStorage as fallback for Supabase');
+      console.warn('Usando localStorage como fallback para armazenamento. OS DADOS NÃO SERÃO COMPARTILHADOS ENTRE USUÁRIOS.');
       const companies = JSON.parse(localStorage.getItem('companies') || '[]');
       return companies;
     }
   } catch (error) {
-    console.error('Error fetching companies:', error);
+    console.error('Erro ao carregar as empresas:', error);
     toast({
       title: "Erro",
       description: "Ocorreu um erro ao carregar as empresas.",
@@ -207,12 +215,12 @@ export const getCompanyById = async (id: string): Promise<CompanyData | null> =>
       return data as CompanyData;
     } else {
       // Fallback to localStorage
-      console.warn('Using localStorage as fallback for Supabase');
+      console.warn('Usando localStorage como fallback para armazenamento. OS DADOS NÃO SERÃO COMPARTILHADOS ENTRE USUÁRIOS.');
       const companies = JSON.parse(localStorage.getItem('companies') || '[]');
       return companies.find((c: CompanyData) => c.id === id) || null;
     }
   } catch (error) {
-    console.error('Error fetching company by ID:', error);
+    console.error('Erro ao carregar empresa por ID:', error);
     return null;
   }
 };
@@ -234,12 +242,12 @@ export const getCompanyByCNPJ = async (cnpj: string): Promise<CompanyData | null
       return data as CompanyData || null;
     } else {
       // Fallback to localStorage
-      console.warn('Using localStorage as fallback for Supabase');
+      console.warn('Usando localStorage como fallback para armazenamento. OS DADOS NÃO SERÃO COMPARTILHADOS ENTRE USUÁRIOS.');
       const companies = JSON.parse(localStorage.getItem('companies') || '[]');
       return companies.find((c: CompanyData) => c.cnpj === cnpj) || null;
     }
   } catch (error) {
-    console.error('Error fetching company by CNPJ:', error);
+    console.error('Erro ao carregar empresa por CNPJ:', error);
     return null;
   }
 };
@@ -260,14 +268,14 @@ export const deleteCompany = async (id: string): Promise<boolean> => {
       return true;
     } else {
       // Fallback to localStorage
-      console.warn('Using localStorage as fallback for Supabase');
+      console.warn('Usando localStorage como fallback para armazenamento. OS DADOS NÃO SERÃO COMPARTILHADOS ENTRE USUÁRIOS.');
       const companies = JSON.parse(localStorage.getItem('companies') || '[]');
       const filteredCompanies = companies.filter((c: CompanyData) => c.id !== id);
       localStorage.setItem('companies', JSON.stringify(filteredCompanies));
       return true;
     }
   } catch (error) {
-    console.error('Error deleting company:', error);
+    console.error('Erro ao deletar empresa:', error);
     return false;
   }
 };
@@ -332,7 +340,7 @@ export const getSectorsAndSubsectors = async (): Promise<{sectors: string[], sub
     
     return { sectors, subsectors };
   } catch (error) {
-    console.error('Error getting sectors and subsectors:', error);
+    console.error('Erro ao obter setores e subsetores:', error);
     return { sectors: [], subsectors: [] };
   }
 };

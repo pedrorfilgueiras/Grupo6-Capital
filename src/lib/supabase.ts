@@ -1,22 +1,43 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { CompanyData } from '@/services/storageService';
+import { toast } from '@/components/ui/use-toast';
 
 // Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co';
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
-// Log warning if using default credentials in development
-if (import.meta.env.DEV && 
-    (supabaseUrl === 'https://your-project-url.supabase.co' || 
-     supabaseAnonKey === 'your-anon-key')) {
-  console.warn('Using default Supabase credentials for development. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your environment variables for production use.');
-}
-
+// Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+// Check if Supabase is properly configured
+const isDefaultConfig = 
+  supabaseUrl === 'https://your-project-url.supabase.co' || 
+  supabaseAnonKey === 'your-anon-key';
+
+// Show warning if using default credentials
+if (isDefaultConfig) {
+  console.warn('⚠️ Usando credenciais padrão do Supabase. Os dados NÃO serão salvos no banco de dados compartilhado.');
+  // Show toast notification only once when the app loads
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      toast({
+        title: "Configuração do Supabase Necessária",
+        description: "Por favor, conecte seu app ao Supabase usando o botão verde do Supabase no canto superior direito, ou defina as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.",
+        duration: 10000,
+      });
+    }, 1000);
+  }
+}
 
 export const initializeSupabase = async () => {
   try {
+    // Skip initialization if using default credentials
+    if (isDefaultConfig) {
+      console.warn('Usando apenas localStorage como armazenamento. Os dados NÃO serão compartilhados entre usuários.');
+      return;
+    }
+
     // Check if the 'companies' table exists
     const { error } = await supabase
       .from('companies')
