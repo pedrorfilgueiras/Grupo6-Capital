@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import Header from '@/components/Header';
-import CompanyForm from '@/components/CompanyForm';
+import { CompanyForm } from '@/components/company';
 import SearchFundInfo from '@/components/SearchFundInfo';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClipboardIcon, InfoIcon } from 'lucide-react';
