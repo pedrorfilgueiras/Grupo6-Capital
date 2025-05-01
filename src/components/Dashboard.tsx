@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -32,7 +31,7 @@ import {
 import { LoaderCircle, BarChart as BarChartIcon, LineChart, Award } from 'lucide-react';
 import AdvancedFilters from './AdvancedFilters';
 import RankingSystem from './RankingSystem';
-import { CompanyData, getCompanies, getSectorsAndSubsectors } from '@/services/storageService';
+import { CompanyData, getCompanies, getSectorsAndSubsectors } from '@/services';
 
 const Dashboard = () => {
   const [companies, setCompanies] = useState<CompanyData[]>([]);

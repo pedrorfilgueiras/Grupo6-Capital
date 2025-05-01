@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Card,
@@ -18,7 +17,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
-import { CompanyData, getRankedCompanies } from '@/services/storageService';
+import { CompanyData, getRankedCompanies } from '@/services';
 
 interface RankingSystemProps {
   companies: CompanyData[];
