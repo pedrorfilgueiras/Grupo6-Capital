@@ -39,12 +39,12 @@ export const initializeSupabase = async () => {
     }
 
     // Check if the 'companies' table exists
-    const { error } = await supabase
+    const { error: errorCompanies } = await supabase
       .from('companies')
       .select('id')
       .limit(1);
 
-    if (error && error.code === '42P01') {
+    if (errorCompanies && errorCompanies.code === '42P01') {
       console.log('Companies table does not exist. Creating schema...');
       console.log(`
 To create the required companies table in Supabase, run this SQL in the Supabase SQL editor:
@@ -82,6 +82,52 @@ ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow full access to companies" ON public.companies
     USING (true)
     WITH CHECK (true);
+      `);
+    }
+    
+    // Check if the 'modulo_dd' table exists
+    const { error: errorDD } = await supabase
+      .from('modulo_dd')
+      .select('id')
+      .limit(1);
+
+    if (errorDD && errorDD.code === '42P01') {
+      console.log('Modulo_dd table does not exist. Creating schema...');
+      console.log(`
+To create the required modulo_dd table in Supabase, run this SQL in the Supabase SQL editor:
+
+CREATE TABLE IF NOT EXISTS public.modulo_dd (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    empresa_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
+    tipo_dd TEXT NOT NULL,
+    item TEXT NOT NULL,
+    status TEXT NOT NULL,
+    risco TEXT NOT NULL,
+    recomendacao TEXT,
+    documento TEXT,
+    documento_nome TEXT,
+    criado_em BIGINT,
+    atualizado_em BIGINT
+);
+
+-- Enable Row Level Security
+ALTER TABLE public.modulo_dd ENABLE ROW LEVEL SECURITY;
+
+-- Create a policy that allows all operations for now (you can restrict this later)
+CREATE POLICY "Allow full access to modulo_dd" ON public.modulo_dd
+    USING (true)
+    WITH CHECK (true);
+
+-- Create a bucket for document storage
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('documentos', 'documentos', true)
+ON CONFLICT DO NOTHING;
+
+-- Set up a policy to allow file access
+CREATE POLICY "Allow public access to documents" ON storage.objects
+    FOR ALL
+    USING (bucket_id = 'documentos')
+    WITH CHECK (bucket_id = 'documentos');
       `);
     }
   } catch (err) {
