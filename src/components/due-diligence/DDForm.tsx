@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -98,9 +97,18 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     try {
       // Criar o objeto de item DD
       const dueDiligenceItem: DueDiligenceItem = {
-        ...data,
-        id: ddId, // Será undefined para novos itens
+        empresa_id: data.empresa_id, // Garantir que empresa_id está presente
+        tipo_dd: data.tipo_dd,
+        item: data.item,
+        status: data.status,
+        risco: data.risco,
+        recomendacao: data.recomendacao || '',
       };
+      
+      // Adicionar o ID se estiver editando
+      if (ddId) {
+        dueDiligenceItem.id = ddId;
+      }
       
       // Se houver arquivo selecionado, fazer o upload
       if (selectedFile) {
