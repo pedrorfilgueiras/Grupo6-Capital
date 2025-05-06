@@ -102,7 +102,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
             <SelectValue placeholder="Empresa" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todas as Empresas</SelectItem>
+            <SelectItem value="all">Todas as Empresas</SelectItem>
             {empresas.map((empresa) => (
               <SelectItem key={empresa.id} value={empresa.id || ''}>
                 {empresa.razaoSocial}
@@ -120,7 +120,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
             <SelectValue placeholder="Tipo de DD" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os Tipos</SelectItem>
+            <SelectItem value="all">Todos os Tipos</SelectItem>
             {categoriasDueDiligence.map((categoria) => (
               <SelectItem key={categoria} value={categoria}>
                 {categoria}
@@ -138,7 +138,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os Status</SelectItem>
+            <SelectItem value="all">Todos os Status</SelectItem>
             <SelectItem value="pendente">Pendente</SelectItem>
             <SelectItem value="em_andamento">Em Andamento</SelectItem>
             <SelectItem value="concluido">Concluído</SelectItem>
@@ -155,7 +155,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
             <SelectValue placeholder="Nível de Risco" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Todos os Níveis</SelectItem>
+            <SelectItem value="all">Todos os Níveis</SelectItem>
             <SelectItem value="baixo">Baixo</SelectItem>
             <SelectItem value="medio">Médio</SelectItem>
             <SelectItem value="alto">Alto</SelectItem>
