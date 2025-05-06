@@ -45,8 +45,8 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
       [campo]: valor
     };
     
-    // Remover campos undefined
-    if (valor === undefined) {
+    // Remover campos undefined ou "all" (que significa todos)
+    if (valor === undefined || valor === "all") {
       delete novosFiltros[campo];
     }
     
@@ -95,7 +95,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
         
         {/* Filtro por empresa */}
         <Select
-          value={filtros.empresa_id}
+          value={filtros.empresa_id || "all"}
           onValueChange={(value) => atualizarFiltro('empresa_id', value)}
         >
           <SelectTrigger>
@@ -113,7 +113,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
         
         {/* Filtro por tipo de DD */}
         <Select
-          value={filtros.tipo_dd}
+          value={filtros.tipo_dd || "all"}
           onValueChange={(value) => atualizarFiltro('tipo_dd', value)}
         >
           <SelectTrigger>
@@ -131,7 +131,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
         
         {/* Filtro por status */}
         <Select
-          value={filtros.status}
+          value={filtros.status || "all"}
           onValueChange={(value) => atualizarFiltro('status', value as StatusDD)}
         >
           <SelectTrigger>
@@ -148,7 +148,7 @@ const DDFilter: React.FC<DDFilterProps> = ({ onFilterChange }) => {
         
         {/* Filtro por nível de risco */}
         <Select
-          value={filtros.risco}
+          value={filtros.risco || "all"}
           onValueChange={(value) => atualizarFiltro('risco', value as NivelRisco)}
         >
           <SelectTrigger>

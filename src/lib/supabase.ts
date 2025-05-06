@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import type { CompanyData } from '@/services/types';
 import { toast } from '@/components/ui/use-toast';
+import { verifySupabaseTables } from '@/services/storageUtils';
 
 // Get Supabase credentials from environment variables
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co';
@@ -38,100 +39,33 @@ export const initializeSupabase = async () => {
       return;
     }
 
-    // Check if the 'companies' table exists
-    const { error: errorCompanies } = await supabase
-      .from('companies')
-      .select('id')
-      .limit(1);
-
-    if (errorCompanies && errorCompanies.code === '42P01') {
-      console.log('Companies table does not exist. Creating schema...');
-      console.log(`
-To create the required companies table in Supabase, run this SQL in the Supabase SQL editor:
-
-CREATE TABLE IF NOT EXISTS public.companies (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    cnpj TEXT NOT NULL,
-    razaoSocial TEXT NOT NULL,
-    setor TEXT,
-    subsetor TEXT,
-    arrFy24 NUMERIC,
-    receitaBrutaFy24 NUMERIC,
-    faturamentoAnual NUMERIC,
-    margem NUMERIC,
-    margemEbitda NUMERIC,
-    crescimentoReceita NUMERIC,
-    ebitda NUMERIC,
-    valuationMultiplo NUMERIC,
-    riscoOperacional TEXT,
-    insightsQualitativos TEXT,
-    nota NUMERIC,
-    statusAprovacao TEXT,
-    qsa JSONB,
-    createdAt BIGINT,
-    weightedScore NUMERIC
-);
-
--- Add a unique constraint on cnpj
-CREATE UNIQUE INDEX IF NOT EXISTS companies_cnpj_idx ON public.companies (cnpj);
-
--- Enable Row Level Security
-ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
-
--- Create a policy that allows all operations for now (you can restrict this later)
-CREATE POLICY "Allow full access to companies" ON public.companies
-    USING (true)
-    WITH CHECK (true);
-      `);
-    }
+    // Verify and create tables if needed
+    const tablesVerified = await verifySupabaseTables();
     
-    // Check if the 'modulo_dd' table exists
-    const { error: errorDD } = await supabase
-      .from('modulo_dd')
-      .select('id')
-      .limit(1);
-
-    if (errorDD && errorDD.code === '42P01') {
-      console.log('Modulo_dd table does not exist. Creating schema...');
-      console.log(`
-To create the required modulo_dd table in Supabase, run this SQL in the Supabase SQL editor:
-
-CREATE TABLE IF NOT EXISTS public.modulo_dd (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    empresa_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
-    tipo_dd TEXT NOT NULL,
-    item TEXT NOT NULL,
-    status TEXT NOT NULL,
-    risco TEXT NOT NULL,
-    recomendacao TEXT,
-    documento TEXT,
-    documento_nome TEXT,
-    criado_em BIGINT,
-    atualizado_em BIGINT
-);
-
--- Enable Row Level Security
-ALTER TABLE public.modulo_dd ENABLE ROW LEVEL SECURITY;
-
--- Create a policy that allows all operations for now (you can restrict this later)
-CREATE POLICY "Allow full access to modulo_dd" ON public.modulo_dd
-    USING (true)
-    WITH CHECK (true);
-
--- Create a bucket for document storage
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('documentos', 'documentos', true)
-ON CONFLICT DO NOTHING;
-
--- Set up a policy to allow file access
-CREATE POLICY "Allow public access to documents" ON storage.objects
-    FOR ALL
-    USING (bucket_id = 'documentos')
-    WITH CHECK (bucket_id = 'documentos');
-      `);
+    if (!tablesVerified) {
+      console.warn('Não foi possível verificar ou criar as tabelas do Supabase. Usando localStorage como fallback.');
+      toast({
+        title: "Atenção",
+        description: "Não foi possível inicializar o Supabase. Os dados serão salvos apenas localmente.",
+        variant: "warning",
+        duration: 8000,
+      });
+    } else {
+      console.log('Supabase inicializado com sucesso!');
+      toast({
+        title: "Supabase Conectado",
+        description: "Conexão com banco de dados estabelecida com sucesso.",
+        duration: 5000,
+      });
     }
   } catch (err) {
-    console.error('Failed to initialize Supabase:', err);
+    console.error('Error during Supabase initialization:', err);
+    toast({
+      title: "Erro",
+      description: "Ocorreu um erro ao inicializar o Supabase. Verifique o console para mais detalhes.",
+      variant: "destructive",
+      duration: 8000,
+    });
   }
 };
 
