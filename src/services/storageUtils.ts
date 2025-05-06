@@ -80,15 +80,21 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
         CREATE POLICY "Allow full access to companies" ON public.companies USING (true) WITH CHECK (true);
       `;
       
-      await supabase.rpc('exec', { sql: createCompaniesSQL }).catch(e => {
-        console.error('Erro ao criar tabela companies:', e);
-        toast({
-          title: "Erro",
-          description: "Não foi possível criar tabela companies. Por favor, siga as instruções de SQL no console.",
-          variant: "destructive",
-          duration: 10000,
+      try {
+        // Use .then().catch() instead of .catch() directly
+        await supabase.rpc('exec', { sql: createCompaniesSQL }).then(null, (e) => {
+          console.error('Erro ao criar tabela companies:', e);
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar tabela companies. Por favor, siga as instruções de SQL no console.",
+            variant: "destructive",
+            duration: 10000,
+          });
         });
-      });
+      } catch (e) {
+        console.error('Erro ao executar RPC:', e);
+        return false;
+      }
     }
     
     // Check if modulo_dd table exists
@@ -119,15 +125,21 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
         CREATE POLICY "Allow full access to modulo_dd" ON public.modulo_dd USING (true) WITH CHECK (true);
       `;
       
-      await supabase.rpc('exec', { sql: createDDSQL }).catch(e => {
-        console.error('Erro ao criar tabela modulo_dd:', e);
-        toast({
-          title: "Erro",
-          description: "Não foi possível criar tabela modulo_dd. Por favor, siga as instruções de SQL no console.",
-          variant: "destructive",
-          duration: 10000,
+      try {
+        // Use .then().catch() instead of .catch() directly
+        await supabase.rpc('exec', { sql: createDDSQL }).then(null, (e) => {
+          console.error('Erro ao criar tabela modulo_dd:', e);
+          toast({
+            title: "Erro",
+            description: "Não foi possível criar tabela modulo_dd. Por favor, siga as instruções de SQL no console.",
+            variant: "destructive",
+            duration: 10000,
+          });
         });
-      });
+      } catch (e) {
+        console.error('Erro ao executar RPC:', e);
+        return false;
+      }
     }
     
     // Check if storage bucket exists

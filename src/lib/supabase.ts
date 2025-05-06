@@ -47,7 +47,7 @@ export const initializeSupabase = async () => {
       toast({
         title: "Atenção",
         description: "Não foi possível inicializar o Supabase. Os dados serão salvos apenas localmente.",
-        variant: "warning",
+        variant: "destructive", // Changed from "warning" to "destructive"
         duration: 8000,
       });
     } else {
