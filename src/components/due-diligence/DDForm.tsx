@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useParams, useNavigate } from 'react-router-dom';
 import { DueDiligenceItem, StatusDD, NivelRisco, categoriasDueDiligence } from '@/services/dueDiligenceTypes';
-import { saveDueDiligenceItem, uploadDocumento } from '@/services/dueDiligenceService';
+import { saveDueDiligenceItem, uploadDocumento, getDueDiligenceItems } from '@/services/dueDiligenceService';
 import { getCompanyById } from '@/services/companyService';
 import { CompanyData } from '@/services/types';
 import { Button } from '@/components/ui/button';
@@ -52,11 +53,11 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [empresa, setEmpresa] = useState<CompanyData | null>(null);
-  const [initialData, setInitialData] = useState<FormData | null>(null);
+  const [initialData, setInitialData] = useState<DueDiligenceItem | null>(null);
   
   const navigate = useNavigate();
   
-  // Configuração do formulário
+  // Configuração do formulário com valores padrão
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,14 +74,23 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
   useEffect(() => {
     if (empresaId) {
       const loadEmpresa = async () => {
-        const empresaData = await getCompanyById(empresaId);
-        if (empresaData) {
-          setEmpresa(empresaData);
-          form.setValue('empresa_id', empresaId);
-        } else {
+        try {
+          const empresaData = await getCompanyById(empresaId);
+          if (empresaData) {
+            setEmpresa(empresaData);
+            form.setValue('empresa_id', empresaId);
+          } else {
+            toast({
+              title: "Erro",
+              description: "Empresa não encontrada",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao carregar dados da empresa:", error);
           toast({
             title: "Erro",
-            description: "Empresa não encontrada",
+            description: "Não foi possível carregar os dados da empresa",
             variant: "destructive",
           });
         }
@@ -90,25 +100,74 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     }
   }, [empresaId, form]);
   
+  // Carregar dados do item DD existente (se for edição)
+  useEffect(() => {
+    if (ddId) {
+      const loadDDItem = async () => {
+        try {
+          const items = await getDueDiligenceItems();
+          const item = items.find(i => i.id === ddId);
+          
+          if (item) {
+            setInitialData(item);
+            
+            // Preencher o formulário com os dados
+            form.reset({
+              tipo_dd: item.tipo_dd,
+              item: item.item,
+              status: item.status,
+              risco: item.risco,
+              recomendacao: item.recomendacao || '',
+              empresa_id: item.empresa_id,
+            });
+            
+            // Carregar dados da empresa relacionada
+            if (item.empresa_id) {
+              const empresaData = await getCompanyById(item.empresa_id);
+              if (empresaData) {
+                setEmpresa(empresaData);
+              }
+            }
+          } else {
+            toast({
+              title: "Erro",
+              description: "Item de DD não encontrado",
+              variant: "destructive",
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao carregar item DD:", error);
+          toast({
+            title: "Erro", 
+            description: "Não foi possível carregar os dados do item",
+            variant: "destructive",
+          });
+        }
+      };
+      
+      loadDDItem();
+    }
+  }, [ddId, form]);
+  
   // Lidar com o envio do formulário
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     
     try {
+      console.log("Enviando dados para salvar:", data);
+      
       // Criar o objeto de item DD
       const dueDiligenceItem: DueDiligenceItem = {
-        empresa_id: data.empresa_id, // Garantir que empresa_id está presente
+        id: ddId, // Será undefined para novos itens
+        empresa_id: data.empresa_id,
         tipo_dd: data.tipo_dd,
         item: data.item,
         status: data.status,
         risco: data.risco,
         recomendacao: data.recomendacao || '',
+        criado_em: initialData?.criado_em || Date.now(),
+        atualizado_em: Date.now()
       };
-      
-      // Adicionar o ID se estiver editando
-      if (ddId) {
-        dueDiligenceItem.id = ddId;
-      }
       
       // Se houver arquivo selecionado, fazer o upload
       if (selectedFile) {
@@ -119,10 +178,18 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
           dueDiligenceItem.documento = filePath;
           dueDiligenceItem.documento_nome = selectedFile.name;
         }
+      } else if (initialData?.documento) {
+        // Manter o documento existente se não houver novo upload
+        dueDiligenceItem.documento = initialData.documento;
+        dueDiligenceItem.documento_nome = initialData.documento_nome;
       }
       
+      console.log("Objeto final a ser salvo:", dueDiligenceItem);
+      
       // Salvar o item DD
-      await saveDueDiligenceItem(dueDiligenceItem);
+      const savedItem = await saveDueDiligenceItem(dueDiligenceItem);
+      
+      console.log("Item salvo com sucesso:", savedItem);
       
       toast({
         title: "Sucesso",
@@ -155,6 +222,7 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     }
   };
   
+  // Restante do componente permanece o mesmo
   return (
     <div className="space-y-6 p-4 bg-white rounded-lg shadow">
       <div className="space-y-2">
@@ -205,6 +273,20 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
                 <FormDescription>
                   Selecione a categoria de due diligence para este item.
                 </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          {/* Empresa ID - Campo hidden */}
+          <FormField
+            control={form.control}
+            name="empresa_id"
+            render={({ field }) => (
+              <FormItem className="hidden">
+                <FormControl>
+                  <Input type="hidden" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}
@@ -334,6 +416,12 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
                 <div className="flex items-center gap-2 text-sm">
                   <FileText className="h-4 w-4" />
                   {selectedFile.name}
+                </div>
+              )}
+              {!selectedFile && initialData?.documento_nome && (
+                <div className="flex items-center gap-2 text-sm">
+                  <FileText className="h-4 w-4" />
+                  <span>{initialData.documento_nome} (atual)</span>
                 </div>
               )}
             </div>

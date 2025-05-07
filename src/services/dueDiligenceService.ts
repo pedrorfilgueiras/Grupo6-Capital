@@ -6,6 +6,7 @@ import { isSupabaseAvailable, showSuccessToast, showErrorToast } from './storage
 // Salvar um item de due diligence
 export const saveDueDiligenceItem = async (data: DueDiligenceItem): Promise<DueDiligenceItem> => {
   try {
+    console.log("Iniciando salvamento do item DD:", data);
     const currentTime = Date.now();
     const newItem = {
       ...data,
@@ -15,6 +16,7 @@ export const saveDueDiligenceItem = async (data: DueDiligenceItem): Promise<DueD
     };
     
     const supabaseAvailable = await isSupabaseAvailable();
+    console.log("Supabase disponível:", supabaseAvailable);
     
     if (supabaseAvailable) {
       // Se o Supabase estiver disponível, salvar no banco de dados
@@ -64,7 +66,7 @@ export const saveDueDiligenceItem = async (data: DueDiligenceItem): Promise<DueD
       const existingItems = JSON.parse(localStorage.getItem('due_diligence_items') || '[]');
       
       // Verificar se o item já existe
-      const existingIndex = existingItems.findIndex((item: DueDiligenceItem) => item.id === data.id);
+      const existingIndex = existingItems.findIndex((item: DueDiligenceItem) => item.id === newItem.id);
       
       if (existingIndex >= 0) {
         // Atualizar item existente

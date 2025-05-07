@@ -1,16 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import Header from '@/components/Header';
 import { DDForm } from '@/components/due-diligence';
 import { DueDiligenceItem } from '@/services/dueDiligenceTypes';
 import { getDueDiligenceItems } from '@/services/dueDiligenceService';
-import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import { toast } from '@/components/ui/use-toast';
 
 const DueDiligenceFormPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
+  const empresaId = searchParams.get('empresa_id') || undefined;
+  
   const [itemDD, setItemDD] = useState<DueDiligenceItem | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   
@@ -25,9 +28,22 @@ const DueDiligenceFormPage: React.FC = () => {
           const item = itens.find(item => item.id === id);
           if (item) {
             setItemDD(item);
+            console.log("Item DD carregado:", item);
+          } else {
+            console.error("Item DD não encontrado com o ID:", id);
+            toast({
+              title: "Erro",
+              description: "Item de Due Diligence não encontrado",
+              variant: "destructive",
+            });
           }
         } catch (error) {
           console.error("Erro ao carregar item DD:", error);
+          toast({
+            title: "Erro",
+            description: "Não foi possível carregar os dados do item",
+            variant: "destructive",
+          });
         } finally {
           setLoading(false);
         }
@@ -65,7 +81,10 @@ const DueDiligenceFormPage: React.FC = () => {
         ) : (
           <DDForm 
             ddId={id} 
-            empresaId={itemDD?.empresa_id} 
+            empresaId={itemDD?.empresa_id || empresaId}
+            onSuccess={() => {
+              console.log("Operação concluída com sucesso");
+            }}
           />
         )}
       </main>
