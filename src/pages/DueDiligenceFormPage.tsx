@@ -1,11 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { useParams, useSearchParams, Link } from 'react-router-dom';
 import Header from '@/components/Header';
 import { DDForm } from '@/components/due-diligence';
 import { DueDiligenceItem } from '@/services/dueDiligenceTypes';
 import { getDueDiligenceItems } from '@/services/dueDiligenceService';
-import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
@@ -57,41 +56,43 @@ const DueDiligenceFormPage: React.FC = () => {
   const titulo = id ? 'Editar Item de Due Diligence' : 'Novo Item de Due Diligence';
   
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-g6-bg-light">
       <Header />
       
-      <main className="flex-1 container mx-auto py-8 px-4 md:px-0">
+      <main className="flex-1 container mx-auto py-8 px-4 md:px-6">
         <div className="mb-6">
           <Link 
             to="/due-diligence" 
-            className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="inline-flex items-center gap-2 text-g6-gray hover:text-g6-blue transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             <span>Voltar para Due Diligence</span>
           </Link>
           
-          <h1 className="text-3xl font-bold mt-4">{titulo}</h1>
+          <h1 className="text-3xl font-bold mt-4 text-g6-blue">{titulo}</h1>
         </div>
         
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-muted-foreground">Carregando dados do item...</p>
-          </div>
-        ) : (
-          <DDForm 
-            ddId={id} 
-            empresaId={itemDD?.empresa_id || empresaId}
-            onSuccess={() => {
-              console.log("Operação concluída com sucesso");
-            }}
-          />
-        )}
+        <div className="bg-white rounded-lg shadow p-6">
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-g6-blue mx-auto"></div>
+              <p className="mt-4 text-g6-gray">Carregando dados do item...</p>
+            </div>
+          ) : (
+            <DDForm 
+              ddId={id} 
+              empresaId={itemDD?.empresa_id || empresaId}
+              onSuccess={() => {
+                console.log("Operação concluída com sucesso");
+              }}
+            />
+          )}
+        </div>
       </main>
       
-      <footer className="bg-g6-gray-dark text-white text-center py-4">
-        <div className="container mx-auto">
-          <p>© {new Date().getFullYear()} Grupo6 Capital. Todos os direitos reservados.</p>
+      <footer className="bg-g6-blue-dark text-white py-6">
+        <div className="container mx-auto px-4 md:px-6">
+          <p className="text-center">© {new Date().getFullYear()} Grupo6 Capital. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
