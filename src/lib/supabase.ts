@@ -16,19 +16,10 @@ const isDefaultConfig =
   supabaseUrl === 'https://your-project-url.supabase.co' || 
   supabaseAnonKey === 'your-anon-key';
 
-// Show warning if using default credentials
+// Show warning if using default credentials, but only in console
 if (isDefaultConfig) {
   console.warn('⚠️ Usando credenciais padrão do Supabase. Os dados NÃO serão salvos no banco de dados compartilhado.');
-  // Show toast notification only once when the app loads
-  if (typeof window !== 'undefined') {
-    setTimeout(() => {
-      toast({
-        title: "Configuração do Supabase Necessária",
-        description: "Por favor, conecte seu app ao Supabase usando o botão verde do Supabase no canto superior direito, ou defina as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY.",
-        duration: 10000,
-      });
-    }, 1000);
-  }
+  // Removed toast notification from here to prevent duplicate notifications
 }
 
 export const initializeSupabase = async () => {
@@ -47,7 +38,7 @@ export const initializeSupabase = async () => {
       toast({
         title: "Atenção",
         description: "Não foi possível inicializar o Supabase. Os dados serão salvos apenas localmente.",
-        variant: "destructive", // Changed from "warning" to "destructive"
+        variant: "destructive",
         duration: 8000,
       });
     } else {
