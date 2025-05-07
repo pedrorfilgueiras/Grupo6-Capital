@@ -1,17 +1,12 @@
 
-import { supabase } from '@/lib/supabase';
+import { supabase, isDefaultConfig } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 
 // Check if Supabase is configured and available
 export const isSupabaseAvailable = async (): Promise<boolean> => {
   try {
     // First check if we have valid credentials
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseAnonKey || 
-        supabaseUrl === 'https://your-project-url.supabase.co' || 
-        supabaseAnonKey === 'your-anon-key') {
+    if (isDefaultConfig) {
       console.warn('Credenciais do Supabase inválidas ou não configuradas. Usando localStorage como fallback.');
       return false;
     }
@@ -19,7 +14,7 @@ export const isSupabaseAvailable = async (): Promise<boolean> => {
     // Then try to connect to the database
     const { data, error } = await supabase.from('companies').select('id').limit(1);
     
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       console.error('Erro ao conectar ao Supabase:', error.message);
       return false;
     }
@@ -81,7 +76,6 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
       `;
       
       try {
-        // Use .then().catch() instead of .catch() directly
         await supabase.rpc('exec', { sql: createCompaniesSQL }).then(null, (e) => {
           console.error('Erro ao criar tabela companies:', e);
           toast({
@@ -126,7 +120,6 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
       `;
       
       try {
-        // Use .then().catch() instead of .catch() directly
         await supabase.rpc('exec', { sql: createDDSQL }).then(null, (e) => {
           console.error('Erro ao criar tabela modulo_dd:', e);
           toast({
