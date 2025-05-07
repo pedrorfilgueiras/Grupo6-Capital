@@ -2,52 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useParams, useNavigate } from 'react-router-dom';
-import { DueDiligenceItem, StatusDD, NivelRisco, categoriasDueDiligence } from '@/services/dueDiligenceTypes';
+import { useNavigate } from 'react-router-dom';
+import { DueDiligenceItem } from '@/services/dueDiligenceTypes';
 import { saveDueDiligenceItem, uploadDocumento, getDueDiligenceItems } from '@/services/dueDiligenceService';
 import { getCompanyById } from '@/services/companyService';
 import { CompanyData } from '@/services/types';
 import { Button } from '@/components/ui/button';
 import {
   Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
 } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { toast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { FileText, AlertTriangle, Info, Upload } from 'lucide-react';
-
-// Schema de validação para o formulário
-const formSchema = z.object({
-  tipo_dd: z.string().min(1, { message: 'Tipo de DD é obrigatório' }),
-  item: z.string().min(3, { message: 'Descrição do item deve ter pelo menos 3 caracteres' }),
-  status: z.enum(['pendente', 'em_andamento', 'concluido', 'cancelado'] as const),
-  risco: z.enum(['baixo', 'medio', 'alto', 'critico'] as const),
-  recomendacao: z.string().optional(),
-  empresa_id: z.string().min(1, { message: 'Empresa é obrigatória' }),
-});
-
-type FormData = z.infer<typeof formSchema>;
-
-interface DDFormProps {
-  ddId?: string; // Para edição de item existente
-  empresaId?: string; // Para pré-seleção de empresa
-  onSuccess?: () => void;
-}
+import { Info } from 'lucide-react';
+import { formSchema, FormData, DDFormProps } from './DDFormSchema';
+import DDFormFields from './DDFormFields';
+import DDDocumentUpload from './DDDocumentUpload';
 
 const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
   const [loading, setLoading] = useState<boolean>(false);
@@ -63,8 +32,8 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     defaultValues: {
       tipo_dd: '',
       item: '',
-      status: 'pendente' as StatusDD,
-      risco: 'medio' as NivelRisco,
+      status: 'pendente',
+      risco: 'medio',
       recomendacao: '',
       empresa_id: empresaId || '',
     },
@@ -149,6 +118,14 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     }
   }, [ddId, form]);
   
+  // Lidar com a seleção de arquivo
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      setSelectedFile(files[0]);
+    }
+  };
+  
   // Lidar com o envio do formulário
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -214,15 +191,6 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     }
   };
   
-  // Lidar com seleção de arquivo
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      setSelectedFile(files[0]);
-    }
-  };
-  
-  // Restante do componente permanece o mesmo
   return (
     <div className="space-y-6 p-4 bg-white rounded-lg shadow">
       <div className="space-y-2">
@@ -246,189 +214,15 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Campo de tipo de DD */}
-          <FormField
-            control={form.control}
-            name="tipo_dd"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Tipo de Due Diligence</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o tipo de DD" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {categoriasDueDiligence.map(categoria => (
-                      <SelectItem key={categoria} value={categoria}>
-                        {categoria}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Selecione a categoria de due diligence para este item.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          {/* Form Fields Component */}
+          <DDFormFields form={form} />
           
-          {/* Empresa ID - Campo hidden */}
-          <FormField
-            control={form.control}
-            name="empresa_id"
-            render={({ field }) => (
-              <FormItem className="hidden">
-                <FormControl>
-                  <Input type="hidden" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          {/* Document Upload Component */}
+          <DDDocumentUpload 
+            selectedFile={selectedFile}
+            onFileChange={handleFileChange}
+            initialData={initialData}
           />
-          
-          {/* Descrição do item */}
-          <FormField
-            control={form.control}
-            name="item"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Descrição do Item</FormLabel>
-                <FormControl>
-                  <Input placeholder="Descreva o item de due diligence" {...field} />
-                </FormControl>
-                <FormDescription>
-                  Uma descrição clara e concisa do item a ser verificado.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Status */}
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o status" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="pendente">Pendente</SelectItem>
-                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                    <SelectItem value="concluido">Concluído</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  O status atual desta verificação.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Risco */}
-          <FormField
-            control={form.control}
-            name="risco"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nível de Risco</FormLabel>
-                <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o nível de risco" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="baixo">Baixo</SelectItem>
-                    <SelectItem value="medio">Médio</SelectItem>
-                    <SelectItem value="alto">Alto</SelectItem>
-                    <SelectItem value="critico">Crítico</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  O nível de risco associado a este item.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Recomendação */}
-          <FormField
-            control={form.control}
-            name="recomendacao"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Recomendação</FormLabel>
-                <FormControl>
-                  <Textarea 
-                    placeholder="Digite quaisquer recomendações ou notas importantes" 
-                    className="min-h-32" 
-                    {...field} 
-                    value={field.value || ''}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Recomendações, próximos passos ou informações adicionais relevantes.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          
-          {/* Upload de documento */}
-          <div className="space-y-2">
-            <FormLabel>Documento</FormLabel>
-            <div className="flex items-center space-x-4">
-              <label 
-                htmlFor="documento" 
-                className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-md cursor-pointer transition-colors"
-              >
-                <Upload className="h-4 w-4" />
-                <span>Selecionar arquivo</span>
-              </label>
-              <input 
-                id="documento" 
-                type="file" 
-                className="hidden" 
-                onChange={handleFileChange} 
-              />
-              {selectedFile && (
-                <div className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4" />
-                  {selectedFile.name}
-                </div>
-              )}
-              {!selectedFile && initialData?.documento_nome && (
-                <div className="flex items-center gap-2 text-sm">
-                  <FileText className="h-4 w-4" />
-                  <span>{initialData.documento_nome} (atual)</span>
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Anexe um documento relevante para este item (opcional).
-            </p>
-          </div>
           
           {/* Botões de ação */}
           <div className="flex justify-end space-x-4 pt-4">
