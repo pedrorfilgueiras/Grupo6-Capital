@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { DueDiligenceItem } from '@/services/dueDiligenceTypes';
-import { saveDueDiligenceItem, uploadDocumento, getDueDiligenceItems } from '@/services/dueDiligenceService';
+import { saveDueDiligenceItem, getDueDiligenceItems } from '@/services/dueDiligenceService';
 import { getCompanyById } from '@/services/companyService';
 import { CompanyData } from '@/services/types';
 import { Button } from '@/components/ui/button';
@@ -16,11 +16,12 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Info } from 'lucide-react';
 import { formSchema, FormData, DDFormProps } from './DDFormSchema';
 import DDFormFields from './DDFormFields';
-import DDDocumentUpload from './DDDocumentUpload';
+import DDDocumentLink from './DDDocumentLink';
 
 const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [documentUrl, setDocumentUrl] = useState<string>("");
+  const [documentName, setDocumentName] = useState<string>("");
   const [empresa, setEmpresa] = useState<CompanyData | null>(null);
   const [initialData, setInitialData] = useState<DueDiligenceItem | null>(null);
   
@@ -90,6 +91,14 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
               empresa_id: item.empresa_id,
             });
             
+            // Preencher dados do documento
+            if (item.documento_url) {
+              setDocumentUrl(item.documento_url);
+            }
+            if (item.documento_nome) {
+              setDocumentName(item.documento_nome);
+            }
+            
             // Carregar dados da empresa relacionada
             if (item.empresa_id) {
               const empresaData = await getCompanyById(item.empresa_id);
@@ -118,14 +127,6 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     }
   }, [ddId, form]);
   
-  // Lidar com a seleção de arquivo
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      setSelectedFile(files[0]);
-    }
-  };
-  
   // Lidar com o envio do formulário
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -146,19 +147,10 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
         atualizado_em: Date.now()
       };
       
-      // Se houver arquivo selecionado, fazer o upload
-      if (selectedFile) {
-        const itemId = ddId || crypto.randomUUID(); // Usar um UUID temporário para novos itens
-        const filePath = await uploadDocumento(selectedFile, data.empresa_id, itemId);
-        
-        if (filePath) {
-          dueDiligenceItem.documento = filePath;
-          dueDiligenceItem.documento_nome = selectedFile.name;
-        }
-      } else if (initialData?.documento) {
-        // Manter o documento existente se não houver novo upload
-        dueDiligenceItem.documento = initialData.documento;
-        dueDiligenceItem.documento_nome = initialData.documento_nome;
+      // Adicionar dados do documento se fornecidos
+      if (documentUrl) {
+        dueDiligenceItem.documento_url = documentUrl;
+        dueDiligenceItem.documento_nome = documentName || "Documento sem nome";
       }
       
       console.log("Objeto final a ser salvo:", dueDiligenceItem);
@@ -217,10 +209,12 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
           {/* Form Fields Component */}
           <DDFormFields form={form} />
           
-          {/* Document Upload Component */}
-          <DDDocumentUpload 
-            selectedFile={selectedFile}
-            onFileChange={handleFileChange}
+          {/* Document Link Component */}
+          <DDDocumentLink 
+            documentUrl={documentUrl}
+            documentName={documentName}
+            onUrlChange={setDocumentUrl}
+            onNameChange={setDocumentName}
             initialData={initialData}
           />
           

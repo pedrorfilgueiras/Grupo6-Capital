@@ -2,7 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DueDiligenceItem, riscoColors, statusColors } from '@/services/dueDiligenceTypes';
-import { updateStatus, updateRisco, getDocumentoURL } from '@/services/dueDiligenceService';
+import { updateStatus, updateRisco } from '@/services/dueDiligenceService';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { FileText, MoreHorizontal, Edit, Trash, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { FileText, MoreHorizontal, Edit, Trash, AlertCircle, CheckCircle, Clock, Link } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -36,19 +36,9 @@ const DDCard: React.FC<DDCardProps> = ({ item, empresaNome, onDelete }) => {
   const navigate = useNavigate();
   
   // Função para abrir o documento
-  const handleOpenDocument = async () => {
-    if (item.documento) {
-      const url = await getDocumentoURL(item.documento);
-      if (url) {
-        // Se for uma URL simulada, apenas mostrar mensagem
-        if (url.startsWith('simulado://')) {
-          alert('Visualização de documentos requer conexão com Supabase Storage. Este é um documento simulado.');
-          return;
-        }
-        
-        // Abrir o documento em uma nova aba
-        window.open(url, '_blank');
-      }
+  const handleOpenDocument = () => {
+    if (item.documento_url) {
+      window.open(item.documento_url, '_blank');
     }
   };
   
@@ -289,15 +279,15 @@ const DDCard: React.FC<DDCardProps> = ({ item, empresaNome, onDelete }) => {
           Atualizado em {dataFormatada}
         </div>
         
-        {item.documento && (
+        {item.documento_url && (
           <Button 
             variant="outline" 
             onClick={handleOpenDocument}
             size="sm"
             className="flex items-center gap-2"
           >
-            <FileText className="h-4 w-4" />
-            <span>Ver Documento</span>
+            <Link className="h-4 w-4" />
+            <span>{item.documento_nome || "Ver Documento"}</span>
           </Button>
         )}
       </CardFooter>

@@ -15,7 +15,7 @@ export const isSupabaseAvailable = async (): Promise<boolean> => {
     const { data, error } = await supabase.from('companies').select('id').limit(1);
     
     if (error && error.code !== 'PGRST116') {
-      console.error('Erro ao conectar ao Supabase:', error.message);
+      console.error('Erro ao conectar ao Supabase:', error);
       return false;
     }
     
@@ -98,7 +98,7 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
       .limit(1);
       
     if (ddError && ddError.code === '42P01') {
-      // Table doesn't exist, create it
+      // Table doesn't exist, create it with documento_url instead of documento
       console.log('Criando tabela "modulo_dd"...');
       const createDDSQL = `
         CREATE TABLE IF NOT EXISTS public.modulo_dd (
@@ -109,7 +109,7 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
           status TEXT NOT NULL,
           risco TEXT NOT NULL,
           recomendacao TEXT,
-          documento TEXT,
+          documento_url TEXT,
           documento_nome TEXT,
           criado_em BIGINT,
           atualizado_em BIGINT,
@@ -132,30 +132,6 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
       } catch (e) {
         console.error('Erro ao executar RPC:', e);
         return false;
-      }
-    }
-    
-    // Check if storage bucket exists
-    const { data: bucketData, error: bucketError } = await supabase
-      .storage
-      .getBucket('documentos');
-      
-    if (bucketError && bucketError.message.includes('The resource was not found')) {
-      console.log('Criando bucket "documentos"...');
-      const { error: createBucketError } = await supabase
-        .storage
-        .createBucket('documentos', {
-          public: true
-        });
-        
-      if (createBucketError) {
-        console.error('Erro ao criar bucket documentos:', createBucketError);
-        toast({
-          title: "Erro",
-          description: "Não foi possível criar o bucket de armazenamento. Execute manualmente pelo console do Supabase.",
-          variant: "destructive",
-          duration: 10000,
-        });
       }
     }
     

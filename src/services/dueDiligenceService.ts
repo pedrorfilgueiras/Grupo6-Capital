@@ -1,4 +1,3 @@
-
 import { supabase } from '@/lib/supabase';
 import { DueDiligenceItem, DueDiligenceFilter, StatusDD, NivelRisco } from './dueDiligenceTypes';
 import { isSupabaseAvailable, showSuccessToast, showErrorToast } from './storageUtils';
@@ -227,29 +226,15 @@ export const uploadDocumento = async (
 };
 
 // Obter URL pública de um documento
-export const getDocumentoURL = async (filePath: string): Promise<string | null> => {
-  if (!filePath) return null;
+export const getDocumentoURL = async (url: string): Promise<string | null> => {
+  if (!url) return null;
   
-  // Se for um caminho simulado, apenas retorne-o
-  if (filePath.startsWith('simulado://')) {
-    return filePath;
-  }
-  
+  // Verificar se é uma URL válida
   try {
-    const supabaseAvailable = await isSupabaseAvailable();
-    
-    if (supabaseAvailable) {
-      const { data } = await supabase
-        .storage
-        .from('documentos')
-        .getPublicUrl(filePath);
-      
-      return data.publicUrl;
-    } else {
-      return null;
-    }
+    new URL(url);
+    return url;
   } catch (error) {
-    console.error('Erro ao obter URL do documento:', error);
+    console.error('URL de documento inválida:', error);
     return null;
   }
 };
@@ -329,4 +314,3 @@ export const updateRisco = async (itemId: string, novoRisco: NivelRisco): Promis
     return false;
   }
 };
-

@@ -10,7 +10,7 @@ export interface DueDiligenceItem {
   status: StatusDD;
   risco: NivelRisco;
   recomendacao: string;
-  documento?: string;
+  documento_url?: string;
   documento_nome?: string;
   criado_em?: number;
   atualizado_em?: number;
@@ -53,4 +53,3 @@ export const categoriasDueDiligence = [
   'Comercial',
   'Outro'
 ];
-
