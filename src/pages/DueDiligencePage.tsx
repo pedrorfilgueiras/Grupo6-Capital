@@ -109,13 +109,13 @@ const DueDiligencePage: React.FC = () => {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-g6-bg-light">
+    <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container mx-auto py-8 px-4 md:px-6">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+      <main className="flex-1 container mx-auto py-8 px-4 md:px-0">
+        <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-g6-blue">Due Diligence</h1>
+            <h1 className="text-3xl font-bold">Due Diligence</h1>
             <p className="text-muted-foreground mt-1">
               Gerencie e acompanhe o processo de due diligence das empresas
             </p>
@@ -123,43 +123,21 @@ const DueDiligencePage: React.FC = () => {
           
           <Button 
             onClick={() => navigate('/due-diligence/novo')}
-            className="flex items-center gap-2 bg-g6-blue hover:bg-g6-blue-light"
+            className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Novo Item</span>
           </Button>
         </div>
         
-        {/* Card de estatísticas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow border-l-4 border-g6-blue">
-            <h3 className="text-sm font-semibold text-g6-gray">TOTAL DE ITENS</h3>
-            <p className="text-2xl font-bold">{itensDD.length}</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow border-l-4 border-g6-accent">
-            <h3 className="text-sm font-semibold text-g6-gray">EM PROGRESSO</h3>
-            <p className="text-2xl font-bold">
-              {itensDD.filter(item => item.status === "Em Progresso").length}
-            </p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
-            <h3 className="text-sm font-semibold text-g6-gray">CONCLUÍDOS</h3>
-            <p className="text-2xl font-bold">
-              {itensDD.filter(item => item.status === "Concluído").length}
-            </p>
-          </div>
-        </div>
-        
         {/* Filtros */}
-        <div className="bg-white p-6 rounded-lg shadow mb-8">
-          <DDFilter onFilterChange={handleFilterChange} />
-        </div>
+        <DDFilter onFilterChange={handleFilterChange} />
         
         <div className="mt-6 space-y-6">
           {loading ? (
-            <div className="text-center py-12 bg-white rounded-lg shadow">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-g6-blue mx-auto"></div>
-              <p className="mt-4 text-g6-gray">Carregando itens de due diligence...</p>
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">Carregando itens de due diligence...</p>
             </div>
           ) : itensDD.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -173,17 +151,18 @@ const DueDiligencePage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-white rounded-lg shadow">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-g6-blue/10">
-                <AlertTriangle className="h-8 w-8 text-g6-blue" />
+            <div className="text-center py-12 bg-muted/30 rounded-lg">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               </div>
-              <h3 className="mt-6 text-xl font-semibold text-g6-blue">Nenhum item encontrado</h3>
-              <p className="mt-2 text-g6-gray">
+              <h3 className="mt-4 text-lg font-semibold">Nenhum item encontrado</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Não foram encontrados itens de due diligence com os filtros selecionados.
               </p>
               <Button 
                 onClick={() => navigate('/due-diligence/novo')}
-                className="mt-6 bg-g6-blue hover:bg-g6-blue-light"
+                className="mt-6"
+                variant="outline"
               >
                 Adicionar Item de Due Diligence
               </Button>
@@ -213,9 +192,9 @@ const DueDiligencePage: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      <footer className="bg-g6-blue-dark text-white py-6">
-        <div className="container mx-auto px-4 md:px-6">
-          <p className="text-center">© {new Date().getFullYear()} Grupo6 Capital. Todos os direitos reservados.</p>
+      <footer className="bg-g6-gray-dark text-white text-center py-4">
+        <div className="container mx-auto">
+          <p>© {new Date().getFullYear()} Grupo6 Capital. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>
