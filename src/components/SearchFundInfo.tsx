@@ -6,30 +6,33 @@ import { FileTextIcon, BriefcaseIcon, TargetIcon, HandshakeIcon, UsersIcon, Sear
 
 const SearchFundInfo = () => {
   return (
-    <div className="w-full space-y-6">
-      <h1 className="text-3xl font-bold text-g6-blue mb-6">Conheça a Grupo6 Capital</h1>
+    <div className="w-full space-y-8">
+      <div className="text-center mb-10">
+        <h1 className="text-3xl font-bold text-g6-blue-dark mb-3">Conheça a Grupo6 Capital</h1>
+        <div className="w-24 h-1 bg-g6-accent mx-auto"></div>
+      </div>
       
       <Tabs defaultValue="sumario" className="w-full">
-        <TabsList className="grid grid-cols-2 mb-8">
-          <TabsTrigger value="sumario" className="flex items-center gap-2">
+        <TabsList className="grid grid-cols-2 mb-10 mx-auto max-w-md bg-g6-gray-light/20">
+          <TabsTrigger value="sumario" className="flex items-center gap-2 data-[state=active]:bg-g6-blue data-[state=active]:text-white">
             <FileTextIcon className="h-4 w-4" />
             <span>Sumário Executivo</span>
           </TabsTrigger>
-          <TabsTrigger value="estrategia" className="flex items-center gap-2">
+          <TabsTrigger value="estrategia" className="flex items-center gap-2 data-[state=active]:bg-g6-blue data-[state=active]:text-white">
             <SearchIcon className="h-4 w-4" />
             <span>Estratégia</span>
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="sumario" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BriefcaseIcon className="h-5 w-5 text-g6-blue" />
+        <TabsContent value="sumario" className="space-y-6 animate-fade-in">
+          <Card className="border border-g6-gray-light/30 shadow-sm hover:shadow-md transition-all">
+            <CardHeader className="bg-gradient-to-r from-g6-blue/5 to-transparent border-b border-g6-gray-light/20">
+              <CardTitle className="flex items-center gap-2 text-g6-blue">
+                <BriefcaseIcon className="h-5 w-5 text-g6-accent" />
                 Objetivo do Search Fund
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-gray-700">
+            <CardContent className="text-g6-gray-dark pt-6">
               <p className="mb-4">
                 Nosso objetivo é conduzir uma busca estruturada e criteriosa por uma empresa do setor B2B que apresente alto potencial de valorização, 
                 buscando maximizar o retorno do investimento com gestão ativa e mitigação de riscos operacionais e estratégicos.
@@ -118,15 +121,15 @@ const SearchFundInfo = () => {
           </Card>
         </TabsContent>
         
-        <TabsContent value="estrategia" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <SearchIcon className="h-5 w-5 text-g6-blue" />
+        <TabsContent value="estrategia" className="space-y-6 animate-fade-in">
+          <Card className="border border-g6-gray-light/30 shadow-sm hover:shadow-md transition-all">
+            <CardHeader className="bg-gradient-to-r from-g6-blue/5 to-transparent border-b border-g6-gray-light/20">
+              <CardTitle className="flex items-center gap-2 text-g6-blue">
+                <SearchIcon className="h-5 w-5 text-g6-accent" />
                 Conceito do Search Fund
               </CardTitle>
             </CardHeader>
-            <CardContent className="text-gray-700">
+            <CardContent className="text-g6-gray-dark pt-6">
               <p className="mb-4">
                 Nosso Search Fund é um veículo de investimento estruturado com o objetivo de identificar, adquirir e operar uma empresa B2B 
                 no setor de Saúde e Bem-Estar. O fundo será conduzido por empreendedores dedicados integralmente à busca e gestão da empresa-alvo, 

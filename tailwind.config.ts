@@ -65,11 +65,14 @@ export default {
 				},
 				// Custom colors for Grupo6 Capital
 				g6: {
-					'blue': '#1a3a5f',
-					'blue-light': '#2d5f8e',
-					'gray-dark': '#333333',
-					'gray': '#6b7280',
-					'gray-light': '#e5e7eb'
+					'blue': 'var(--g6-blue)',
+					'blue-light': 'var(--g6-blue-light)',
+					'blue-dark': 'var(--g6-blue-dark)',
+					'gray-dark': 'var(--g6-gray-dark)',
+					'gray': 'var(--g6-gray)',
+					'gray-light': 'var(--g6-gray-light)',
+					'accent': 'var(--g6-accent)',
+					'accent-light': 'var(--g6-accent-light)',
 				}
 			},
 			borderRadius: {
@@ -93,11 +96,22 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out'
 			}
 		}
 	},
