@@ -6,6 +6,9 @@ import { supabase as supabaseClient } from '@/integrations/supabase/client';
 // Use o cliente Supabase da integração nativa
 export const supabase = supabaseClient;
 
+// Verificar se estamos usando configuração padrão
+export const isDefaultConfig = !import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY;
+
 // Inicializar conexão Supabase
 export const initializeSupabase = async (): Promise<boolean> => {
   try {

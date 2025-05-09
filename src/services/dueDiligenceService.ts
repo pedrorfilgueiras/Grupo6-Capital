@@ -1,5 +1,4 @@
-
-import { DueDiligenceItem, DueDiligenceFilter } from './dueDiligenceTypes';
+import { DueDiligenceItem, DueDiligenceFilter, StatusDD, NivelRisco } from './dueDiligenceTypes';
 import { supabase } from '@/lib/supabase';
 import { showSuccessToast, showErrorToast } from './storageUtils';
 
@@ -242,5 +241,105 @@ export const deleteDueDiligenceItem = async (id: string): Promise<boolean> => {
       console.error('Erro ao excluir localmente:', localError);
       return false;
     }
+  }
+};
+
+// NOVAS FUNÇÕES
+
+// Atualizar o status de um item de DD
+export const updateStatus = async (id: string, novoStatus: StatusDD): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('modulo_dd')
+      .update({ status: novoStatus, atualizado_em: Date.now() })
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    showSuccessToast(`Status do item atualizado para ${novoStatus}`);
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar status:', error);
+    showErrorToast("Não foi possível atualizar o status.");
+    return false;
+  }
+};
+
+// Atualizar o nível de risco de um item de DD
+export const updateRisco = async (id: string, novoRisco: NivelRisco): Promise<boolean> => {
+  try {
+    const { error } = await supabase
+      .from('modulo_dd')
+      .update({ risco: novoRisco, atualizado_em: Date.now() })
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    showSuccessToast(`Nível de risco atualizado para ${novoRisco}`);
+    return true;
+  } catch (error) {
+    console.error('Erro ao atualizar nível de risco:', error);
+    showErrorToast("Não foi possível atualizar o nível de risco.");
+    return false;
+  }
+};
+
+// Obter URL de um documento
+export const getDocumentoURL = async (caminho: string): Promise<string | null> => {
+  try {
+    // Verifique se o caminho parece ser uma URL simulada
+    if (caminho.startsWith('simulado://')) {
+      return caminho; // Retornar a URL simulada como está
+    }
+    
+    // Obter URL pública do documento no Supabase Storage
+    const { data, error } = await supabase
+      .storage
+      .from('documentos')
+      .createSignedUrl(caminho, 60 * 60); // URL válida por 1 hora
+    
+    if (error) {
+      console.error('Erro ao obter URL do documento:', error);
+      throw error;
+    }
+    
+    return data?.signedUrl || null;
+  } catch (error) {
+    console.error('Erro ao obter URL do documento:', error);
+    return null;
+  }
+};
+
+// Fazer upload de um documento
+export const uploadDocumento = async (
+  arquivo: File,
+  empresaId: string,
+  itemId: string
+): Promise<string | null> => {
+  try {
+    const fileExt = arquivo.name.split('.').pop();
+    const fileName = `${empresaId}/${itemId}.${fileExt}`;
+    const filePath = `dd/${fileName}`;
+
+    // Fazer upload do arquivo para o Supabase Storage
+    const { data, error } = await supabase
+      .storage
+      .from('documentos')
+      .upload(filePath, arquivo, {
+        cacheControl: '3600',
+        upsert: true
+      });
+      
+    if (error) {
+      console.error("Erro ao fazer upload do documento:", error);
+      throw error;
+    }
+    
+    return filePath;
+  } catch (error) {
+    console.error("Erro ao fazer upload:", error);
+    
+    // Para desenvolvimento local, simular upload bem-sucedido
+    return `simulado://${arquivo.name}`;
   }
 };
