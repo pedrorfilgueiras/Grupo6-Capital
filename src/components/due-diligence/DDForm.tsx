@@ -73,6 +73,7 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
   useEffect(() => {
     if (ddId) {
       const loadDDItem = async () => {
+        setLoading(true);
         try {
           const items = await getDueDiligenceItems();
           const item = items.find(i => i.id === ddId);
@@ -103,7 +104,7 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
               }
             }
           } else {
-            console.error("Item DD não encontrado com o ID:", ddId); // Fixed: Changed 'id' to 'ddId'
+            console.error("Item DD não encontrado com o ID:", ddId);
             toast({
               title: "Erro",
               description: "Item de Due Diligence não encontrado",
@@ -138,9 +139,20 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     try {
       console.log("Enviando dados para salvar:", data);
       
+      // Verificar se uma empresa foi selecionada
+      if (!data.empresa_id) {
+        toast({
+          title: "Erro",
+          description: "É necessário selecionar uma empresa",
+          variant: "destructive",
+        });
+        setLoading(false);
+        return;
+      }
+      
       // Criar o objeto de item DD
       const dueDiligenceItem: DueDiligenceItem = {
-        id: ddId, // Será undefined para novos itens
+        id: ddId || undefined, // Será undefined para novos itens
         empresa_id: data.empresa_id,
         tipo_dd: data.tipo_dd,
         item: data.item,

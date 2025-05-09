@@ -1,3 +1,4 @@
+
 import { DueDiligenceItem, DueDiligenceFilter, StatusDD, NivelRisco } from './dueDiligenceTypes';
 import { supabase } from '@/lib/supabase';
 import { showSuccessToast, showErrorToast } from './storageUtils';
