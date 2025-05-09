@@ -178,20 +178,24 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
       console.log("Objeto final a ser salvo:", dueDiligenceItem);
       
       // Salvar o item DD
-      const savedItem = await saveDueDiligenceItem(dueDiligenceItem);
-      
-      console.log("Item salvo com sucesso:", savedItem);
-      
-      toast({
-        title: "Sucesso",
-        description: ddId ? "Item de DD atualizado com sucesso!" : "Item de DD cadastrado com sucesso!",
-      });
-      
-      // Executar callback de sucesso ou redirecionar
-      if (onSuccess) {
-        onSuccess();
-      } else {
-        navigate('/due-diligence');
+      try {
+        const savedItem = await saveDueDiligenceItem(dueDiligenceItem);
+        console.log("Item salvo com sucesso:", savedItem);
+        
+        toast({
+          title: "Sucesso",
+          description: ddId ? "Item de DD atualizado com sucesso!" : "Item de DD cadastrado com sucesso!",
+        });
+        
+        // Executar callback de sucesso ou redirecionar
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          navigate('/due-diligence');
+        }
+      } catch (saveError) {
+        console.error("Erro específico ao salvar no Supabase:", saveError);
+        throw saveError;
       }
     } catch (error) {
       console.error("Erro ao salvar item DD:", error);
