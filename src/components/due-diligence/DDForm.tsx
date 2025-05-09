@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -102,7 +103,7 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
               }
             }
           } else {
-            console.error("Item DD não encontrado com o ID:", id);
+            console.error("Item DD não encontrado com o ID:", ddId); // Fixed: Changed 'id' to 'ddId'
             toast({
               title: "Erro",
               description: "Item de Due Diligence não encontrado",
