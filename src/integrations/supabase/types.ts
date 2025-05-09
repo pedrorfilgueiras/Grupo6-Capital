@@ -9,99 +9,13 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      empresas: {
-        Row: {
-          cnpj: string
-          created_at: string | null
-          ebitda: number
-          faturamento_anual: number
-          id: string
-          margem: number
-          razao_social: string
-        }
-        Insert: {
-          cnpj: string
-          created_at?: string | null
-          ebitda: number
-          faturamento_anual: number
-          id?: string
-          margem: number
-          razao_social: string
-        }
-        Update: {
-          cnpj?: string
-          created_at?: string | null
-          ebitda?: number
-          faturamento_anual?: number
-          id?: string
-          margem?: number
-          razao_social?: string
-        }
-        Relationships: []
-      }
-      "g6-capital": {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
-      qsa: {
-        Row: {
-          created_at: string | null
-          documento: string
-          empresa_id: string
-          id: string
-          nome: string
-          participacao: number
-        }
-        Insert: {
-          created_at?: string | null
-          documento: string
-          empresa_id: string
-          id?: string
-          nome: string
-          participacao: number
-        }
-        Update: {
-          created_at?: string | null
-          documento?: string
-          empresa_id?: string
-          id?: string
-          nome?: string
-          participacao?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "qsa_empresa_id_fkey"
-            columns: ["empresa_id"]
-            isOneToOne: false
-            referencedRelation: "empresas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+      [_ in never]: never
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      create_empresas_table: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
-      create_qsa_table: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
