@@ -1,17 +1,11 @@
 
-import { supabase, isDefaultConfig } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { toast } from '@/components/ui/use-toast';
 
-// Check if Supabase is configured and available
+// Verificar se Supabase está disponível
 export const isSupabaseAvailable = async (): Promise<boolean> => {
   try {
-    // First check if we have valid credentials
-    if (isDefaultConfig) {
-      console.warn('Credenciais do Supabase inválidas ou não configuradas. Usando localStorage como fallback.');
-      return false;
-    }
-    
-    // Then try to connect to the database
+    // Testar conexão com uma consulta simples
     const { data, error } = await supabase.from('companies').select('id').limit(1);
     
     if (error && error.code !== 'PGRST116') {
@@ -27,136 +21,41 @@ export const isSupabaseAvailable = async (): Promise<boolean> => {
   }
 };
 
-// Verify Supabase tables and create them if needed
+// Verificar existência das tabelas no Supabase
 export const verifySupabaseTables = async (): Promise<boolean> => {
   try {
-    // Check if Supabase is available
-    const supabaseAvailable = await isSupabaseAvailable();
-    if (!supabaseAvailable) {
-      return false;
-    }
-    
-    console.log('Verificando tabelas do Supabase...');
-    
-    // Check if companies table exists
-    const { data: companiesData, error: companiesError } = await supabase
+    // Verificar se podemos acessar a tabela companies
+    const { error: errorCompanies } = await supabase
       .from('companies')
       .select('id')
       .limit(1);
       
-    if (companiesError && companiesError.code === '42P01') {
-      // Table doesn't exist, create it
-      console.log('Criando tabela "companies"...');
-      const createCompaniesSQL = `
-        CREATE TABLE IF NOT EXISTS public.companies (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          cnpj TEXT NOT NULL,
-          razaoSocial TEXT NOT NULL,
-          setor TEXT,
-          subsetor TEXT,
-          arrFy24 NUMERIC,
-          receitaBrutaFy24 NUMERIC,
-          faturamentoAnual NUMERIC,
-          margem NUMERIC,
-          margemEbitda NUMERIC,
-          crescimentoReceita NUMERIC,
-          ebitda NUMERIC,
-          valuationMultiplo NUMERIC,
-          riscoOperacional TEXT,
-          insightsQualitativos TEXT,
-          nota NUMERIC,
-          statusAprovacao TEXT,
-          qsa JSONB,
-          createdAt BIGINT,
-          weightedScore NUMERIC
-        );
-        CREATE UNIQUE INDEX IF NOT EXISTS companies_cnpj_idx ON public.companies (cnpj);
-        ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
-        CREATE POLICY "Allow full access to companies" ON public.companies USING (true) WITH CHECK (true);
-      `;
-      
-      try {
-        await supabase.rpc('exec', { sql: createCompaniesSQL }).then(null, (e) => {
-          console.error('Erro ao criar tabela companies:', e);
-          toast({
-            title: "Erro",
-            description: "Não foi possível criar tabela companies. Por favor, siga as instruções de SQL no console.",
-            variant: "destructive",
-            duration: 10000,
-          });
-        });
-      } catch (e) {
-        console.error('Erro ao executar RPC:', e);
-        return false;
-      }
-    }
-    
-    // Check if modulo_dd table exists
-    const { data: ddData, error: ddError } = await supabase
+    // Verificar se podemos acessar a tabela modulo_dd
+    const { error: errorDD } = await supabase
       .from('modulo_dd')
       .select('id')
       .limit(1);
-      
-    if (ddError && ddError.code === '42P01') {
-      // Table doesn't exist, create it
-      console.log('Criando tabela "modulo_dd"...');
-      const createDDSQL = `
-        CREATE TABLE IF NOT EXISTS public.modulo_dd (
-          id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-          empresa_id UUID NOT NULL,
-          tipo_dd TEXT NOT NULL,
-          item TEXT NOT NULL,
-          status TEXT NOT NULL,
-          risco TEXT NOT NULL,
-          recomendacao TEXT,
-          documento TEXT,
-          documento_nome TEXT,
-          criado_em BIGINT,
-          atualizado_em BIGINT,
-          FOREIGN KEY (empresa_id) REFERENCES public.companies(id) ON DELETE CASCADE
-        );
-        ALTER TABLE public.modulo_dd ENABLE ROW LEVEL SECURITY;
-        CREATE POLICY "Allow full access to modulo_dd" ON public.modulo_dd USING (true) WITH CHECK (true);
-      `;
-      
-      try {
-        await supabase.rpc('exec', { sql: createDDSQL }).then(null, (e) => {
-          console.error('Erro ao criar tabela modulo_dd:', e);
-          toast({
-            title: "Erro",
-            description: "Não foi possível criar tabela modulo_dd. Por favor, siga as instruções de SQL no console.",
-            variant: "destructive",
-            duration: 10000,
-          });
-        });
-      } catch (e) {
-        console.error('Erro ao executar RPC:', e);
-        return false;
-      }
+
+    // Se houver erro que não seja de dados não encontrados, relatamos
+    if ((errorCompanies && errorCompanies.code !== 'PGRST116') || 
+        (errorDD && errorDD.code !== 'PGRST116')) {
+      console.error('Erro ao verificar tabelas:', errorCompanies || errorDD);
+      return false;
     }
     
-    // Check if storage bucket exists
-    const { data: bucketData, error: bucketError } = await supabase
-      .storage
-      .getBucket('documentos');
-      
-    if (bucketError && bucketError.message.includes('The resource was not found')) {
-      console.log('Criando bucket "documentos"...');
-      const { error: createBucketError } = await supabase
+    // Verificar acesso ao bucket de armazenamento
+    try {
+      const { data: bucketData } = await supabase
         .storage
-        .createBucket('documentos', {
-          public: true
-        });
+        .getBucket('documentos');
         
-      if (createBucketError) {
-        console.error('Erro ao criar bucket documentos:', createBucketError);
-        toast({
-          title: "Erro",
-          description: "Não foi possível criar o bucket de armazenamento. Execute manualmente pelo console do Supabase.",
-          variant: "destructive",
-          duration: 10000,
-        });
+      if (!bucketData) {
+        console.warn('Bucket de documentos não encontrado.');
+        return false;
       }
+    } catch (storageErr) {
+      console.error('Erro ao verificar bucket de documentos:', storageErr);
+      return false;
     }
     
     console.log('Verificação de tabelas concluída com sucesso!');
@@ -167,7 +66,7 @@ export const verifySupabaseTables = async (): Promise<boolean> => {
   }
 };
 
-// Show a success toast message
+// Mostrar mensagem de sucesso
 export const showSuccessToast = (message: string) => {
   toast({
     title: "Sucesso",
@@ -175,7 +74,7 @@ export const showSuccessToast = (message: string) => {
   });
 };
 
-// Show an error toast message
+// Mostrar mensagem de erro
 export const showErrorToast = (message: string) => {
   toast({
     title: "Erro",

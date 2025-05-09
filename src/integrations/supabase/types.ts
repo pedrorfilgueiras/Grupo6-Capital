@@ -9,13 +9,218 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      companies: {
+        Row: {
+          arrfy24: number | null
+          cnpj: string
+          createdat: number | null
+          crescimentoreceita: number | null
+          ebitda: number | null
+          faturamentoanual: number | null
+          id: string
+          insightsqualitativos: string | null
+          margem: number | null
+          margemebitda: number | null
+          nota: number | null
+          qsa: Json | null
+          razaosocial: string
+          receitabrutafy24: number | null
+          riscooperacional: string | null
+          setor: string | null
+          statusaprovacao: string | null
+          subsetor: string | null
+          valuationmultiplo: number | null
+          weightedscore: number | null
+        }
+        Insert: {
+          arrfy24?: number | null
+          cnpj: string
+          createdat?: number | null
+          crescimentoreceita?: number | null
+          ebitda?: number | null
+          faturamentoanual?: number | null
+          id?: string
+          insightsqualitativos?: string | null
+          margem?: number | null
+          margemebitda?: number | null
+          nota?: number | null
+          qsa?: Json | null
+          razaosocial: string
+          receitabrutafy24?: number | null
+          riscooperacional?: string | null
+          setor?: string | null
+          statusaprovacao?: string | null
+          subsetor?: string | null
+          valuationmultiplo?: number | null
+          weightedscore?: number | null
+        }
+        Update: {
+          arrfy24?: number | null
+          cnpj?: string
+          createdat?: number | null
+          crescimentoreceita?: number | null
+          ebitda?: number | null
+          faturamentoanual?: number | null
+          id?: string
+          insightsqualitativos?: string | null
+          margem?: number | null
+          margemebitda?: number | null
+          nota?: number | null
+          qsa?: Json | null
+          razaosocial?: string
+          receitabrutafy24?: number | null
+          riscooperacional?: string | null
+          setor?: string | null
+          statusaprovacao?: string | null
+          subsetor?: string | null
+          valuationmultiplo?: number | null
+          weightedscore?: number | null
+        }
+        Relationships: []
+      }
+      empresas: {
+        Row: {
+          cnpj: string
+          created_at: string | null
+          ebitda: number
+          faturamento_anual: number
+          id: string
+          margem: number
+          razao_social: string
+        }
+        Insert: {
+          cnpj: string
+          created_at?: string | null
+          ebitda: number
+          faturamento_anual: number
+          id?: string
+          margem: number
+          razao_social: string
+        }
+        Update: {
+          cnpj?: string
+          created_at?: string | null
+          ebitda?: number
+          faturamento_anual?: number
+          id?: string
+          margem?: number
+          razao_social?: string
+        }
+        Relationships: []
+      }
+      "g6-capital": {
+        Row: {
+          created_at: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+        }
+        Update: {
+          created_at?: string
+          id?: number
+        }
+        Relationships: []
+      }
+      modulo_dd: {
+        Row: {
+          atualizado_em: number | null
+          criado_em: number | null
+          documento_nome: string | null
+          documento_url: string | null
+          empresa_id: string
+          id: string
+          item: string
+          recomendacao: string | null
+          risco: string
+          status: string
+          tipo_dd: string
+        }
+        Insert: {
+          atualizado_em?: number | null
+          criado_em?: number | null
+          documento_nome?: string | null
+          documento_url?: string | null
+          empresa_id: string
+          id?: string
+          item: string
+          recomendacao?: string | null
+          risco: string
+          status: string
+          tipo_dd: string
+        }
+        Update: {
+          atualizado_em?: number | null
+          criado_em?: number | null
+          documento_nome?: string | null
+          documento_url?: string | null
+          empresa_id?: string
+          id?: string
+          item?: string
+          recomendacao?: string | null
+          risco?: string
+          status?: string
+          tipo_dd?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modulo_dd_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qsa: {
+        Row: {
+          created_at: string | null
+          documento: string
+          empresa_id: string
+          id: string
+          nome: string
+          participacao: number
+        }
+        Insert: {
+          created_at?: string | null
+          documento: string
+          empresa_id: string
+          id?: string
+          nome: string
+          participacao: number
+        }
+        Update: {
+          created_at?: string | null
+          documento?: string
+          empresa_id?: string
+          id?: string
+          nome?: string
+          participacao?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qsa_empresa_id_fkey"
+            columns: ["empresa_id"]
+            isOneToOne: false
+            referencedRelation: "empresas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_empresas_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      create_qsa_table: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
