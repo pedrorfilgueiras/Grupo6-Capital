@@ -1,24 +1,72 @@
 
+import { DueDiligenceItem, DueDiligenceFilter } from './dueDiligenceTypes';
 import { supabase } from '@/lib/supabase';
-import { DueDiligenceItem, DueDiligenceFilter, StatusDD, NivelRisco } from './dueDiligenceTypes';
 import { showSuccessToast, showErrorToast } from './storageUtils';
+
+// Interface para mapear os tipos do Supabase
+interface SupabaseDueDiligenceItem {
+  id?: string;
+  empresa_id: string;
+  tipo_dd: string;
+  item: string;
+  status: string;
+  risco: string;
+  recomendacao?: string;
+  documento_nome?: string;
+  documento_url?: string;
+  criado_em?: number;
+  atualizado_em?: number;
+}
+
+// Converter para formato do Supabase
+const toSupabaseFormat = (data: DueDiligenceItem): SupabaseDueDiligenceItem => {
+  return {
+    id: data.id,
+    empresa_id: data.empresa_id,
+    tipo_dd: data.tipo_dd,
+    item: data.item,
+    status: data.status,
+    risco: data.risco,
+    recomendacao: data.recomendacao,
+    documento_nome: data.documento_nome,
+    documento_url: data.documento,
+    criado_em: data.criado_em,
+    atualizado_em: data.atualizado_em
+  };
+};
+
+// Converter de formato do Supabase
+const fromSupabaseFormat = (data: any): DueDiligenceItem => {
+  return {
+    id: data.id,
+    empresa_id: data.empresa_id,
+    tipo_dd: data.tipo_dd,
+    item: data.item,
+    status: data.status,
+    risco: data.risco,
+    recomendacao: data.recomendacao || '',
+    documento: data.documento_url,
+    documento_nome: data.documento_nome,
+    criado_em: data.criado_em,
+    atualizado_em: data.atualizado_em
+  };
+};
 
 // Salvar um item de due diligence
 export const saveDueDiligenceItem = async (data: DueDiligenceItem): Promise<DueDiligenceItem> => {
   try {
-    console.log("Iniciando salvamento do item DD:", data);
-    const currentTime = Date.now();
-    const newItem = {
+    const timestamp = Date.now();
+    const itemToSave = {
       ...data,
       id: data.id || crypto.randomUUID(),
-      atualizado_em: currentTime,
-      criado_em: data.criado_em || currentTime
+      criado_em: data.criado_em || timestamp,
+      atualizado_em: timestamp
     };
     
-    console.log("Salvando item DD no Supabase:", newItem);
+    console.log('Salvando item de DD no Supabase:', itemToSave);
     
-    // Preparar para upload do documento
-    let documento_url = data.documento;
+    // Converter para o formato do Supabase
+    const supabaseData = toSupabaseFormat(itemToSave);
     
     let result;
     
@@ -26,150 +74,149 @@ export const saveDueDiligenceItem = async (data: DueDiligenceItem): Promise<DueD
       // Atualizar item existente
       const { data: updatedItem, error } = await supabase
         .from('modulo_dd')
-        .update({
-          ...newItem,
-          documento_url: documento_url
-        })
+        .update(supabaseData)
         .eq('id', data.id)
         .select()
         .single();
       
       if (error) {
-        console.error("Erro ao atualizar item DD no Supabase:", error);
+        console.error("Erro ao atualizar item de DD:", error);
         throw error;
       }
       
-      result = { 
-        ...updatedItem, 
-        documento: updatedItem.documento_url 
-      };
-      
-      showSuccessToast("Item de DD atualizado com sucesso!");
+      result = updatedItem;
+      showSuccessToast("Item de Due Diligence atualizado com sucesso!");
     } else {
-      // Adicionar novo item
+      // Inserir novo item
       const { data: insertedItem, error } = await supabase
         .from('modulo_dd')
-        .insert({
-          ...newItem,
-          documento_url: documento_url
-        })
+        .insert(supabaseData)
         .select()
         .single();
       
       if (error) {
-        console.error("Erro ao inserir item DD no Supabase:", error);
+        console.error("Erro ao inserir item de DD:", error);
         throw error;
       }
       
-      result = {
-        ...insertedItem,
-        documento: insertedItem.documento_url
-      };
-      
-      showSuccessToast("Item de DD cadastrado com sucesso!");
+      result = insertedItem;
+      showSuccessToast("Item de Due Diligence adicionado com sucesso!");
     }
     
-    return result as DueDiligenceItem;
+    return fromSupabaseFormat(result);
   } catch (error) {
-    console.error('Erro ao salvar item DD:', error);
-    showErrorToast("Ocorreu um erro ao salvar o item de due diligence.");
+    console.error('Erro ao salvar item de Due Diligence:', error);
+    showErrorToast("Ocorreu um erro ao salvar o item de Due Diligence.");
     
     // Fallback para localStorage
     try {
-      const existingItems = JSON.parse(localStorage.getItem('due_diligence_items') || '[]');
-      const newItem = {
+      const timestamp = Date.now();
+      const savedItem = {
         ...data,
         id: data.id || crypto.randomUUID(),
-        atualizado_em: Date.now(),
-        criado_em: data.criado_em || Date.now()
+        criado_em: data.criado_em || timestamp,
+        atualizado_em: timestamp
       };
       
-      const existingIndex = existingItems.findIndex((item: DueDiligenceItem) => item.id === newItem.id);
+      const ddItems = JSON.parse(localStorage.getItem('dueDiligenceItems') || '[]');
       
-      if (existingIndex >= 0) {
-        existingItems[existingIndex] = newItem;
+      if (data.id) {
+        const index = ddItems.findIndex((item: DueDiligenceItem) => item.id === data.id);
+        if (index >= 0) {
+          ddItems[index] = savedItem;
+        } else {
+          ddItems.push(savedItem);
+        }
       } else {
-        existingItems.push(newItem);
+        ddItems.push(savedItem);
       }
       
-      localStorage.setItem('due_diligence_items', JSON.stringify(existingItems));
-      showSuccessToast("Item de DD salvo localmente (modo fallback).");
+      localStorage.setItem('dueDiligenceItems', JSON.stringify(ddItems));
+      showSuccessToast("Dados salvos localmente (modo fallback).");
       
-      return newItem;
+      return savedItem;
     } catch (localError) {
-      console.error('Erro ao usar fallback:', localError);
+      console.error('Erro ao usar fallback local:', localError);
       throw error;
     }
   }
 };
 
-// Obter todos os itens de due diligence com filtros opcionais
+// Obter itens de due diligence por filtros
 export const getDueDiligenceItems = async (filters?: DueDiligenceFilter): Promise<DueDiligenceItem[]> => {
   try {
-    // Construir a query com filtros
-    let query = supabase.from('modulo_dd').select('*');
+    let query = supabase
+      .from('modulo_dd')
+      .select('*');
     
-    if (filters?.empresa_id) {
-      query = query.eq('empresa_id', filters.empresa_id);
+    if (filters) {
+      if (filters.empresa_id) {
+        query = query.eq('empresa_id', filters.empresa_id);
+      }
+      if (filters.tipo_dd) {
+        query = query.eq('tipo_dd', filters.tipo_dd);
+      }
+      if (filters.status) {
+        query = query.eq('status', filters.status);
+      }
+      if (filters.risco) {
+        query = query.eq('risco', filters.risco);
+      }
     }
     
-    if (filters?.tipo_dd) {
-      query = query.eq('tipo_dd', filters.tipo_dd);
+    const { data, error } = await query.order('criado_em', { ascending: false });
+    
+    if (error) {
+      throw error;
     }
     
-    if (filters?.status) {
-      query = query.eq('status', filters.status);
-    }
-    
-    if (filters?.risco) {
-      query = query.eq('risco', filters.risco);
-    }
-    
-    // Ordenar por data de atualização
-    query = query.order('atualizado_em', { ascending: false });
-    
-    const { data, error } = await query;
-    
-    if (error) throw error;
-    
-    // Mapear os dados para o formato esperado pela aplicação
-    return (data as any[]).map(item => ({
-      ...item,
-      documento: item.documento_url,
-      documento_nome: item.documento_nome
-    }));
+    return data.map(item => fromSupabaseFormat(item));
   } catch (error) {
-    console.error('Erro ao buscar itens DD:', error);
-    showErrorToast("Erro ao carregar itens de DD. Usando dados locais como fallback.");
+    console.error('Erro ao carregar itens de Due Diligence:', error);
+    showErrorToast("Erro ao carregar itens de Due Diligence.");
     
     // Fallback para localStorage
-    const items: DueDiligenceItem[] = JSON.parse(localStorage.getItem('due_diligence_items') || '[]');
-    
-    // Aplicar filtros localmente
-    let filteredItems = [...items];
-    
-    if (filters?.empresa_id) {
-      filteredItems = filteredItems.filter(item => item.empresa_id === filters.empresa_id);
+    const items = JSON.parse(localStorage.getItem('dueDiligenceItems') || '[]');
+    if (filters) {
+      return items.filter((item: DueDiligenceItem) => {
+        let match = true;
+        if (filters.empresa_id) match = match && item.empresa_id === filters.empresa_id;
+        if (filters.tipo_dd) match = match && item.tipo_dd === filters.tipo_dd;
+        if (filters.status) match = match && item.status === filters.status;
+        if (filters.risco) match = match && item.risco === filters.risco;
+        return match;
+      });
     }
-    
-    if (filters?.tipo_dd) {
-      filteredItems = filteredItems.filter(item => item.tipo_dd === filters.tipo_dd);
-    }
-    
-    if (filters?.status) {
-      filteredItems = filteredItems.filter(item => item.status === filters.status);
-    }
-    
-    if (filters?.risco) {
-      filteredItems = filteredItems.filter(item => item.risco === filters.risco);
-    }
-    
-    // Ordenar por data de atualização (decrescente)
-    return filteredItems.sort((a, b) => (b.atualizado_em || 0) - (a.atualizado_em || 0));
+    return items;
   }
 };
 
-// Deletar um item de due diligence
+// Obter um item de due diligence por ID
+export const getDueDiligenceItemById = async (id: string): Promise<DueDiligenceItem | null> => {
+  try {
+    const { data, error } = await supabase
+      .from('modulo_dd')
+      .select('*')
+      .eq('id', id)
+      .maybeSingle();
+    
+    if (error) {
+      throw error;
+    }
+    
+    if (!data) return null;
+    
+    return fromSupabaseFormat(data);
+  } catch (error) {
+    console.error('Erro ao carregar item de DD por ID:', error);
+    
+    // Fallback para localStorage
+    const items = JSON.parse(localStorage.getItem('dueDiligenceItems') || '[]');
+    return items.find((item: DueDiligenceItem) => item.id === id) || null;
+  }
+};
+
+// Excluir um item de due diligence
 export const deleteDueDiligenceItem = async (id: string): Promise<boolean> => {
   try {
     const { error } = await supabase
@@ -179,148 +226,20 @@ export const deleteDueDiligenceItem = async (id: string): Promise<boolean> => {
     
     if (error) throw error;
     
-    showSuccessToast("Item de DD excluído com sucesso!");
+    showSuccessToast("Item de Due Diligence excluído com sucesso!");
     return true;
   } catch (error) {
-    console.error('Erro ao deletar item DD:', error);
-    showErrorToast("Erro ao excluir item de DD. Tentando excluir localmente.");
+    console.error('Erro ao excluir item de DD:', error);
+    showErrorToast("Erro ao excluir item. Tentando excluir localmente.");
     
     // Fallback para localStorage
     try {
-      const items = JSON.parse(localStorage.getItem('due_diligence_items') || '[]');
+      const items = JSON.parse(localStorage.getItem('dueDiligenceItems') || '[]');
       const filteredItems = items.filter((item: DueDiligenceItem) => item.id !== id);
-      localStorage.setItem('due_diligence_items', JSON.stringify(filteredItems));
+      localStorage.setItem('dueDiligenceItems', JSON.stringify(filteredItems));
       return true;
     } catch (localError) {
       console.error('Erro ao excluir localmente:', localError);
-      return false;
-    }
-  }
-};
-
-// Upload de um documento para o Supabase Storage
-export const uploadDocumento = async (
-  file: File, 
-  empresaId: string, 
-  itemId: string
-): Promise<string | null> => {
-  try {
-    const filePath = `due_diligence/${empresaId}/${itemId}/${file.name}`;
-    
-    const { data, error } = await supabase
-      .storage
-      .from('documentos')
-      .upload(filePath, file, {
-        cacheControl: '3600',
-        upsert: true
-      });
-    
-    if (error) throw error;
-    
-    // Retornar o caminho do arquivo salvo
-    return filePath;
-  } catch (error) {
-    console.error('Erro ao fazer upload de documento:', error);
-    showErrorToast("Ocorreu um erro ao fazer upload do documento.");
-    
-    // Simulação de caminho para fallback local
-    return `simulado://documentos/due_diligence/${empresaId}/${itemId}/${file.name}`;
-  }
-};
-
-// Obter URL pública de um documento
-export const getDocumentoURL = async (filePath: string): Promise<string | null> => {
-  if (!filePath) return null;
-  
-  // Se for um caminho simulado, apenas retorne-o
-  if (filePath.startsWith('simulado://')) {
-    return filePath;
-  }
-  
-  try {
-    const { data } = await supabase
-      .storage
-      .from('documentos')
-      .getPublicUrl(filePath);
-    
-    return data.publicUrl;
-  } catch (error) {
-    console.error('Erro ao obter URL do documento:', error);
-    return null;
-  }
-};
-
-// Atualizar o status de um item
-export const updateStatus = async (itemId: string, novoStatus: StatusDD): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('modulo_dd')
-      .update({ status: novoStatus, atualizado_em: Date.now() })
-      .eq('id', itemId);
-    
-    if (error) throw error;
-    
-    showSuccessToast(`Status atualizado para: ${novoStatus}`);
-    return true;
-  } catch (error) {
-    console.error('Erro ao atualizar status:', error);
-    showErrorToast("Ocorreu um erro ao atualizar o status.");
-    
-    // Fallback para localStorage
-    try {
-      const items = JSON.parse(localStorage.getItem('due_diligence_items') || '[]');
-      const itemIndex = items.findIndex((item: DueDiligenceItem) => item.id === itemId);
-      
-      if (itemIndex >= 0) {
-        items[itemIndex].status = novoStatus;
-        items[itemIndex].atualizado_em = Date.now();
-        localStorage.setItem('due_diligence_items', JSON.stringify(items));
-        
-        showSuccessToast(`Status atualizado para: ${novoStatus} (localStorage)`);
-        return true;
-      }
-      
-      return false;
-    } catch (localError) {
-      console.error('Erro ao atualizar localmente:', localError);
-      return false;
-    }
-  }
-};
-
-// Atualizar o nível de risco de um item
-export const updateRisco = async (itemId: string, novoRisco: NivelRisco): Promise<boolean> => {
-  try {
-    const { error } = await supabase
-      .from('modulo_dd')
-      .update({ risco: novoRisco, atualizado_em: Date.now() })
-      .eq('id', itemId);
-    
-    if (error) throw error;
-    
-    showSuccessToast(`Nível de risco atualizado para: ${novoRisco}`);
-    return true;
-  } catch (error) {
-    console.error('Erro ao atualizar nível de risco:', error);
-    showErrorToast("Ocorreu um erro ao atualizar o nível de risco.");
-    
-    // Fallback para localStorage
-    try {
-      const items = JSON.parse(localStorage.getItem('due_diligence_items') || '[]');
-      const itemIndex = items.findIndex((item: DueDiligenceItem) => item.id === itemId);
-      
-      if (itemIndex >= 0) {
-        items[itemIndex].risco = novoRisco;
-        items[itemIndex].atualizado_em = Date.now();
-        localStorage.setItem('due_diligence_items', JSON.stringify(items));
-        
-        showSuccessToast(`Nível de risco atualizado para: ${novoRisco} (localStorage)`);
-        return true;
-      }
-      
-      return false;
-    } catch (localError) {
-      console.error('Erro ao atualizar localmente:', localError);
       return false;
     }
   }

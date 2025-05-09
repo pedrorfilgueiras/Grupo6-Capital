@@ -1,15 +1,10 @@
 
-import { createClient } from '@supabase/supabase-js';
-import type { CompanyData } from '@/services/types';
-import { toast } from '@/components/ui/use-toast';
 import { verifySupabaseTables } from '@/services/storageUtils';
+import { toast } from '@/components/ui/use-toast';
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
 // Use o cliente Supabase da integração nativa
 export const supabase = supabaseClient;
-
-// Verificar se o Supabase está disponível
-export const isDefaultConfig = false;
 
 // Inicializar conexão Supabase
 export const initializeSupabase = async (): Promise<boolean> => {
@@ -36,6 +31,10 @@ export const initializeSupabase = async (): Promise<boolean> => {
       description: "Conexão com banco de dados estabelecida com sucesso.",
       duration: 5000,
     });
+    
+    // Verificar tabelas
+    await verifySupabaseTables();
+    
     return true;
   } catch (err) {
     console.error('Error during Supabase initialization:', err);

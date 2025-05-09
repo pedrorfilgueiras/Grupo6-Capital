@@ -2,6 +2,88 @@
 import { CompanyData } from './types';
 import { supabase } from '@/lib/supabase';
 import { showSuccessToast, showErrorToast } from './storageUtils';
+import { Json } from '@/integrations/supabase/types';
+
+// Interface para mapear os tipos do Supabase
+interface SupabaseCompanyData {
+  id?: string;
+  cnpj: string;
+  razaosocial: string;
+  setor?: string;
+  subsetor?: string;
+  arrfy24?: number;
+  receitabrutafy24?: number;
+  faturamentoanual?: number;
+  margem?: number;
+  margemebitda?: number;
+  crescimentoreceita?: number;
+  ebitda?: number;
+  valuationmultiplo?: number;
+  riscooperacional?: string;
+  insightsqualitativos?: string;
+  nota?: number;
+  statusaprovacao?: string;
+  qsa?: Json;
+  createdat?: number;
+  weightedscore?: number;
+}
+
+// Função para converter CompanyData para o formato do Supabase
+const toSupabaseFormat = (data: CompanyData): SupabaseCompanyData => {
+  return {
+    id: data.id,
+    cnpj: data.cnpj,
+    razaosocial: data.razaoSocial,
+    setor: data.setor,
+    subsetor: data.subsetor,
+    arrfy24: data.arrFy24,
+    receitabrutafy24: data.receitaBrutaFy24,
+    faturamentoanual: data.faturamentoAnual,
+    margem: data.margem,
+    margemebitda: data.margemEbitda,
+    crescimentoreceita: data.crescimentoReceita,
+    ebitda: data.ebitda,
+    valuationmultiplo: data.valuationMultiplo,
+    riscooperacional: data.riscoOperacional,
+    insightsqualitativos: data.insightsQualitativos,
+    nota: data.nota,
+    statusaprovacao: data.statusAprovacao,
+    qsa: data.qsa as unknown as Json,
+    createdat: data.createdAt,
+    weightedscore: data.weightedScore
+  };
+};
+
+// Função para converter dados do Supabase para o formato do aplicativo
+const fromSupabaseFormat = (data: any): CompanyData => {
+  return {
+    id: data.id,
+    cnpj: data.cnpj,
+    razaoSocial: data.razaosocial,
+    setor: data.setor || '',
+    subsetor: data.subsetor || '',
+    arrFy24: data.arrfy24 || 0,
+    receitaBrutaFy24: data.receitabrutafy24 || 0,
+    faturamentoAnual: data.faturamentoanual || 0,
+    margem: data.margem || 0,
+    margemEbitda: data.margemebitda || 0,
+    crescimentoReceita: data.crescimentoreceita || 0,
+    ebitda: data.ebitda || 0,
+    valuationMultiplo: data.valuationmultiplo || 0,
+    riscoOperacional: data.riscooperacional || 'Médio',
+    insightsQualitativos: data.insightsqualitativos || '',
+    nota: data.nota || 0,
+    statusAprovacao: data.statusaprovacao || 'Em Avaliação',
+    qsa: (data.qsa as any[] || []).map(s => ({
+      id: s.id,
+      nome: s.nome,
+      documento: s.documento,
+      participacao: s.participacao
+    })),
+    createdAt: data.createdat,
+    weightedScore: data.weightedscore
+  };
+};
 
 // Salvar uma empresa no Supabase
 export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
@@ -13,6 +95,9 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
     };
     
     console.log("Salvando no Supabase:", newCompany);
+    
+    // Converter para o formato do Supabase
+    const supabaseData = toSupabaseFormat(newCompany);
     
     // Verificar se a empresa com este CNPJ já existe
     const { data: existingCompany } = await supabase
@@ -27,7 +112,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
       // Atualizar empresa existente
       const { data: updatedCompany, error } = await supabase
         .from('companies')
-        .update(newCompany)
+        .update(supabaseData)
         .eq('id', existingCompany.id)
         .select()
         .single();
@@ -43,7 +128,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
       // Adicionar nova empresa
       const { data: insertedCompany, error } = await supabase
         .from('companies')
-        .insert(newCompany)
+        .insert(supabaseData)
         .select()
         .single();
       
@@ -56,7 +141,7 @@ export const saveCompany = async (data: CompanyData): Promise<CompanyData> => {
       showSuccessToast("Empresa cadastrada com sucesso no Supabase!");
     }
     
-    return result as CompanyData;
+    return fromSupabaseFormat(result);
   } catch (error) {
     console.error('Erro ao salvar empresa:', error);
     showErrorToast("Ocorreu um erro ao salvar os dados da empresa.");
@@ -97,13 +182,13 @@ export const getCompanies = async (): Promise<CompanyData[]> => {
     const { data, error } = await supabase
       .from('companies')
       .select('*')
-      .order('createdAt', { ascending: false });
+      .order('createdat', { ascending: false });
     
     if (error) {
       throw error;
     }
     
-    return data as CompanyData[];
+    return data.map(item => fromSupabaseFormat(item));
   } catch (error) {
     console.error('Erro ao carregar as empresas do Supabase:', error);
     showErrorToast("Erro ao carregar empresas. Usando dados locais como fallback.");
@@ -127,7 +212,9 @@ export const getCompanyById = async (id: string): Promise<CompanyData | null> =>
       throw error;
     }
     
-    return data as CompanyData || null;
+    if (!data) return null;
+    
+    return fromSupabaseFormat(data);
   } catch (error) {
     console.error('Erro ao carregar empresa por ID:', error);
     
@@ -150,7 +237,9 @@ export const getCompanyByCNPJ = async (cnpj: string): Promise<CompanyData | null
       throw error;
     }
     
-    return data as CompanyData || null;
+    if (!data) return null;
+    
+    return fromSupabaseFormat(data);
   } catch (error) {
     console.error('Erro ao carregar empresa por CNPJ:', error);
     
