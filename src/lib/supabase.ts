@@ -5,14 +5,16 @@ import { toast } from '@/components/ui/use-toast';
 import { verifySupabaseTables } from '@/services/storageUtils';
 
 // Get Supabase credentials from environment variables
-const supabaseUrl = 'https://spzbgghheklhxupfmtax.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNwemJnZ2hoZWtsaHh1cGZtdGF4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQ4OTgzMzIsImV4cCI6MjA2MDQ3NDMzMn0.jHyXZe0fqVMJCrdEy0VEaD7ROGt2Xvu4At6zRWsDpks';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-url.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
 
 // Create Supabase client
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Check if Supabase is properly configured
-export const isDefaultConfig = false;
+export const isDefaultConfig = 
+  supabaseUrl === 'https://your-project-url.supabase.co' || 
+  supabaseAnonKey === 'your-anon-key';
 
 // Initialize Supabase connection
 export const initializeSupabase = async (): Promise<boolean> => {

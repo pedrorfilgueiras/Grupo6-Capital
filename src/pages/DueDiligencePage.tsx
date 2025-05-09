@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Plus, AlertTriangle, Building2 } from 'lucide-react';
+import { Plus, AlertTriangle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const DueDiligencePage: React.FC = () => {
@@ -115,15 +115,15 @@ const DueDiligencePage: React.FC = () => {
       <main className="flex-1 container mx-auto py-8 px-4 md:px-0">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-g6-blue-dark">Due Diligence</h1>
-            <p className="text-g6-gray mt-1">
+            <h1 className="text-3xl font-bold">Due Diligence</h1>
+            <p className="text-muted-foreground mt-1">
               Gerencie e acompanhe o processo de due diligence das empresas
             </p>
           </div>
           
           <Button 
             onClick={() => navigate('/due-diligence/novo')}
-            className="flex items-center gap-2 bg-g6-blue hover:bg-g6-blue-light"
+            className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
             <span>Novo Item</span>
@@ -136,8 +136,8 @@ const DueDiligencePage: React.FC = () => {
         <div className="mt-6 space-y-6">
           {loading ? (
             <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-g6-blue mx-auto"></div>
-              <p className="mt-2 text-g6-gray">Carregando itens de due diligence...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="mt-2 text-muted-foreground">Carregando itens de due diligence...</p>
             </div>
           ) : itensDD.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -151,12 +151,12 @@ const DueDiligencePage: React.FC = () => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 bg-g6-gray-light/10 rounded-lg border border-g6-gray-light/30">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-g6-gray-light/20">
-                <AlertTriangle className="h-6 w-6 text-g6-gray" />
+            <div className="text-center py-12 bg-muted/30 rounded-lg">
+              <div className="mx-auto flex h-10 w-10 items-center justify-center rounded-full bg-muted">
+                <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               </div>
-              <h3 className="mt-4 text-lg font-semibold text-g6-blue-dark">Nenhum item encontrado</h3>
-              <p className="mt-2 text-sm text-g6-gray">
+              <h3 className="mt-4 text-lg font-semibold">Nenhum item encontrado</h3>
+              <p className="mt-2 text-sm text-muted-foreground">
                 Não foram encontrados itens de due diligence com os filtros selecionados.
               </p>
               <Button 
@@ -192,17 +192,9 @@ const DueDiligencePage: React.FC = () => {
         </AlertDialogContent>
       </AlertDialog>
       
-      <footer className="bg-g6-blue-dark text-white text-center py-6">
+      <footer className="bg-g6-gray-dark text-white text-center py-4">
         <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 md:mb-0">
-              <div className="bg-white rounded-full p-1 mr-2">
-                <Building2 className="h-5 w-5 text-g6-blue" />
-              </div>
-              <span className="font-bold">Grupo6 Capital</span>
-            </div>
-            <p className="text-sm text-g6-gray-light">© {new Date().getFullYear()} Grupo6 Capital. Todos os direitos reservados.</p>
-          </div>
+          <p>© {new Date().getFullYear()} Grupo6 Capital. Todos os direitos reservados.</p>
         </div>
       </footer>
     </div>

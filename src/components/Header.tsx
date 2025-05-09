@@ -11,7 +11,6 @@ import {
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
-import { Building2, ChevronRight } from 'lucide-react';
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
@@ -41,18 +40,10 @@ ListItem.displayName = "ListItem"
 
 const Header = () => {
   return (
-    <header className="bg-gradient-to-r from-g6-blue-dark to-g6-blue text-white shadow-lg">
-      <div className="container mx-auto py-5 px-4 md:px-0">
+    <header className="bg-g6-gray-dark text-white">
+      <div className="container mx-auto py-4 px-4 md:px-0">
         <div className="flex justify-between items-center">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-g6-white rounded-full p-1.5">
-              <Building2 className="h-6 w-6 text-g6-blue" />
-            </div>
-            <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight">Grupo6 Capital</span>
-              <span className="text-xs text-g6-accent uppercase tracking-wider font-semibold">Search Fund</span>
-            </div>
-          </Link>
+          <Link to="/" className="text-xl font-bold">Grupo6 Capital</Link>
 
           <NavigationMenu>
             <NavigationMenuList>
