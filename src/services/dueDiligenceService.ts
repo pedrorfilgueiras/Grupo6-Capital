@@ -244,8 +244,6 @@ export const deleteDueDiligenceItem = async (id: string): Promise<boolean> => {
   }
 };
 
-// NOVAS FUNÇÕES
-
 // Atualizar o status de um item de DD
 export const updateStatus = async (id: string, novoStatus: StatusDD): Promise<boolean> => {
   try {
@@ -284,62 +282,8 @@ export const updateRisco = async (id: string, novoRisco: NivelRisco): Promise<bo
   }
 };
 
-// Obter URL de um documento
-export const getDocumentoURL = async (caminho: string): Promise<string | null> => {
-  try {
-    // Verifique se o caminho parece ser uma URL simulada
-    if (caminho.startsWith('simulado://')) {
-      return caminho; // Retornar a URL simulada como está
-    }
-    
-    // Obter URL pública do documento no Supabase Storage
-    const { data, error } = await supabase
-      .storage
-      .from('documentos')
-      .createSignedUrl(caminho, 60 * 60); // URL válida por 1 hora
-    
-    if (error) {
-      console.error('Erro ao obter URL do documento:', error);
-      throw error;
-    }
-    
-    return data?.signedUrl || null;
-  } catch (error) {
-    console.error('Erro ao obter URL do documento:', error);
-    return null;
-  }
-};
-
-// Fazer upload de um documento
-export const uploadDocumento = async (
-  arquivo: File,
-  empresaId: string,
-  itemId: string
-): Promise<string | null> => {
-  try {
-    const fileExt = arquivo.name.split('.').pop();
-    const fileName = `${empresaId}/${itemId}.${fileExt}`;
-    const filePath = `dd/${fileName}`;
-
-    // Fazer upload do arquivo para o Supabase Storage
-    const { data, error } = await supabase
-      .storage
-      .from('documentos')
-      .upload(filePath, arquivo, {
-        cacheControl: '3600',
-        upsert: true
-      });
-      
-    if (error) {
-      console.error("Erro ao fazer upload do documento:", error);
-      throw error;
-    }
-    
-    return filePath;
-  } catch (error) {
-    console.error("Erro ao fazer upload:", error);
-    
-    // Para desenvolvimento local, simular upload bem-sucedido
-    return `simulado://${arquivo.name}`;
-  }
+// Obter URL de um documento - agora simplesmente retorna o link
+export const getDocumentoURL = async (link: string): Promise<string | null> => {
+  // Agora apenas retornamos o link diretamente, sem necessidade de gerar URLs assinadas
+  return link || null;
 };

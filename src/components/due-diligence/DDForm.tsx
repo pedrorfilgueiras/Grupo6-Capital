@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNavigate } from 'react-router-dom';
 import { DueDiligenceItem } from '@/services/dueDiligenceTypes';
-import { saveDueDiligenceItem, uploadDocumento, getDueDiligenceItems } from '@/services/dueDiligenceService';
+import { saveDueDiligenceItem, getDueDiligenceItems } from '@/services/dueDiligenceService';
 import { getCompanyById } from '@/services/companyService';
 import { CompanyData } from '@/services/types';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ import DDDocumentUpload from './DDDocumentUpload';
 
 const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
   const [loading, setLoading] = useState<boolean>(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [documentLink, setDocumentLink] = useState<string>('');
   const [empresa, setEmpresa] = useState<CompanyData | null>(null);
   const [initialData, setInitialData] = useState<DueDiligenceItem | null>(null);
   
@@ -90,6 +89,11 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
               empresa_id: item.empresa_id,
             });
             
+            // Definir o link do documento se existir
+            if (item.documento) {
+              setDocumentLink(item.documento);
+            }
+            
             // Carregar dados da empresa relacionada
             if (item.empresa_id) {
               const empresaData = await getCompanyById(item.empresa_id);
@@ -98,9 +102,10 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
               }
             }
           } else {
+            console.error("Item DD não encontrado com o ID:", id);
             toast({
               title: "Erro",
-              description: "Item de DD não encontrado",
+              description: "Item de Due Diligence não encontrado",
               variant: "destructive",
             });
           }
@@ -111,6 +116,8 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
             description: "Não foi possível carregar os dados do item",
             variant: "destructive",
           });
+        } finally {
+          setLoading(false);
         }
       };
       
@@ -118,12 +125,9 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
     }
   }, [ddId, form]);
   
-  // Lidar com a seleção de arquivo
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files && files[0]) {
-      setSelectedFile(files[0]);
-    }
+  // Lidar com a mudança no link do documento
+  const handleLinkChange = (link: string) => {
+    setDocumentLink(link);
   };
   
   // Lidar com o envio do formulário
@@ -146,17 +150,14 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
         atualizado_em: Date.now()
       };
       
-      // Se houver arquivo selecionado, fazer o upload
-      if (selectedFile) {
-        const itemId = ddId || crypto.randomUUID(); // Usar um UUID temporário para novos itens
-        const filePath = await uploadDocumento(selectedFile, data.empresa_id, itemId);
-        
-        if (filePath) {
-          dueDiligenceItem.documento = filePath;
-          dueDiligenceItem.documento_nome = selectedFile.name;
-        }
+      // Adicionar o link do documento se foi fornecido
+      if (documentLink) {
+        dueDiligenceItem.documento = documentLink;
+        // Extrair o nome do documento do URL (apenas para exibição)
+        const urlParts = documentLink.split('/');
+        dueDiligenceItem.documento_nome = urlParts[urlParts.length - 1] || 'Link de documento';
       } else if (initialData?.documento) {
-        // Manter o documento existente se não houver novo upload
+        // Manter o documento existente se não houver novo link
         dueDiligenceItem.documento = initialData.documento;
         dueDiligenceItem.documento_nome = initialData.documento_nome;
       }
@@ -217,10 +218,10 @@ const DDForm: React.FC<DDFormProps> = ({ ddId, empresaId, onSuccess }) => {
           {/* Form Fields Component */}
           <DDFormFields form={form} />
           
-          {/* Document Upload Component */}
+          {/* Document Link Component */}
           <DDDocumentUpload 
-            selectedFile={selectedFile}
-            onFileChange={handleFileChange}
+            documentLink={documentLink}
+            onLinkChange={handleLinkChange}
             initialData={initialData}
           />
           

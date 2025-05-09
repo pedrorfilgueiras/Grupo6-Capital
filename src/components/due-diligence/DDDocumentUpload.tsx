@@ -1,53 +1,43 @@
 
 import React from 'react';
-import { FileText, Upload } from 'lucide-react';
+import { Link2 } from 'lucide-react';
 import { FormLabel } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { DueDiligenceItem } from '@/services/dueDiligenceTypes';
 
 interface DocumentUploadProps {
-  selectedFile: File | null;
-  onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  documentLink: string;
+  onLinkChange: (link: string) => void;
   initialData: DueDiligenceItem | null;
 }
 
 const DDDocumentUpload: React.FC<DocumentUploadProps> = ({ 
-  selectedFile, 
-  onFileChange, 
+  documentLink, 
+  onLinkChange, 
   initialData 
 }) => {
   return (
     <div className="space-y-2">
       <FormLabel>Documento</FormLabel>
-      <div className="flex items-center space-x-4">
-        <label 
-          htmlFor="documento" 
-          className="flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-md cursor-pointer transition-colors"
-        >
-          <Upload className="h-4 w-4" />
-          <span>Selecionar arquivo</span>
-        </label>
-        <input 
-          id="documento" 
-          type="file" 
-          className="hidden" 
-          onChange={onFileChange} 
-        />
-        {selectedFile && (
-          <div className="flex items-center gap-2 text-sm">
-            <FileText className="h-4 w-4" />
-            {selectedFile.name}
-          </div>
-        )}
-        {!selectedFile && initialData?.documento_nome && (
-          <div className="flex items-center gap-2 text-sm">
-            <FileText className="h-4 w-4" />
-            <span>{initialData.documento_nome} (atual)</span>
-          </div>
-        )}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Input 
+            value={documentLink}
+            onChange={(e) => onLinkChange(e.target.value)}
+            placeholder="https://exemplo.com/documento.pdf"
+            className="pl-10"
+          />
+          <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        </div>
       </div>
       <p className="text-xs text-muted-foreground mt-1">
-        Anexe um documento relevante para este item (opcional).
+        Insira um link para um documento relevante para este item (opcional).
       </p>
+      {!documentLink && initialData?.documento_nome && (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Link atual: {initialData.documento}</span>
+        </div>
+      )}
     </div>
   );
 };
