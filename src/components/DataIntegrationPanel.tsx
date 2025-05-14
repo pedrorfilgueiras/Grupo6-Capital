@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FileSpreadsheet, FileText, Database, Wand, FileExport, Settings } from 'lucide-react';
+import { FileSpreadsheet, FileText, Database, Wand, FileDown, Settings } from 'lucide-react';
 import { CompanyData } from '@/services/types';
 import { getCompanies } from '@/services/companyService';
 import { useQuery } from '@tanstack/react-query';
@@ -212,7 +211,7 @@ const DataIntegrationPanel = () => {
               <span>Dashboard</span>
             </TabsTrigger>
             <TabsTrigger value="export" className="flex items-center gap-2">
-              <FileExport className="h-4 w-4" />
+              <FileDown className="h-4 w-4" />
               <span>Exportação</span>
             </TabsTrigger>
             <TabsTrigger value="prompts" className="flex items-center gap-2">
@@ -419,7 +418,7 @@ const DataIntegrationPanel = () => {
               className="w-full md:w-auto"
               disabled={selectedFields.length === 0}
             >
-              <FileExport className="mr-2 h-4 w-4" />
+              <FileDown className="mr-2 h-4 w-4" />
               Exportar Dados
             </Button>
           </TabsContent>
