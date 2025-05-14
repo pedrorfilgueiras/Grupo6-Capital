@@ -71,6 +71,12 @@ const Header = () => {
                     >
                       Gerencie o processo de due diligence das empresas.
                     </ListItem>
+                    <ListItem
+                      href="/data-integration"
+                      title="Painel de Dados"
+                    >
+                      Dados integrados, geração de prompts e exportação.
+                    </ListItem>
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>

@@ -4,7 +4,7 @@ import Header from '@/components/Header';
 import { CompanyForm } from '@/components/company';
 import SearchFundInfo from '@/components/SearchFundInfo';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ClipboardIcon, InfoIcon, SearchIcon } from 'lucide-react';
+import { ClipboardIcon, InfoIcon, SearchIcon, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
@@ -16,7 +16,7 @@ const Index = () => {
       <Header />
       <main className="flex-1 container mx-auto py-8 px-4 md:px-0">
         {/* Banner do Novo Módulo de Due Diligence */}
-        <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 mb-8 flex flex-col md:flex-row items-center justify-between">
+        <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 mb-4 flex flex-col md:flex-row items-center justify-between">
           <div className="mb-4 md:mb-0">
             <h2 className="text-xl font-bold text-primary">Novo Módulo de Due Diligence</h2>
             <p className="text-muted-foreground mt-1">
@@ -26,6 +26,22 @@ const Index = () => {
           <Link to="/due-diligence">
             <Button className="w-full md:w-auto">
               Acessar Módulo DD
+            </Button>
+          </Link>
+        </div>
+        
+        {/* Banner do Novo Painel de Dados */}
+        <div className="bg-g6-blue/10 border border-g6-blue/20 rounded-lg p-6 mb-8 flex flex-col md:flex-row items-center justify-between">
+          <div className="mb-4 md:mb-0">
+            <h2 className="text-xl font-bold text-g6-blue">Novo: Painel de Dados Integrados</h2>
+            <p className="text-muted-foreground mt-1">
+              Visualize dados integrados, crie prompts automatizados e exporte dados em vários formatos.
+            </p>
+          </div>
+          <Link to="/data-integration">
+            <Button variant="outline" className="w-full md:w-auto border-g6-blue text-g6-blue hover:bg-g6-blue hover:text-white">
+              <Database className="h-4 w-4 mr-2" />
+              Explorar Dados
             </Button>
           </Link>
         </div>
