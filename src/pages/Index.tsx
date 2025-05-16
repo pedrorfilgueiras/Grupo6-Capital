@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Header from '@/components/Header';
 import { CompanyForm } from '@/components/company';
 import SearchFundInfo from '@/components/SearchFundInfo';
+import SmartDataTab from '@/components/SmartDataTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ClipboardIcon, InfoIcon, SearchIcon, Database } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,13 +53,17 @@ const Index = () => {
           className="w-full"
         >
           <TabsList className="w-full max-w-md mx-auto mb-8">
-            <TabsTrigger value="info" className="flex items-center gap-2 w-1/2">
+            <TabsTrigger value="info" className="flex items-center gap-2">
               <InfoIcon className="h-4 w-4" />
               <span>Sobre nós</span>
             </TabsTrigger>
-            <TabsTrigger value="form" className="flex items-center gap-2 w-1/2">
+            <TabsTrigger value="form" className="flex items-center gap-2">
               <ClipboardIcon className="h-4 w-4" />
               <span>Formulário</span>
+            </TabsTrigger>
+            <TabsTrigger value="smart-data" className="flex items-center gap-2">
+              <Database className="h-4 w-4" />
+              <span>Dados Inteligentes</span>
             </TabsTrigger>
           </TabsList>
           
@@ -68,6 +73,10 @@ const Index = () => {
           
           <TabsContent value="form" className="mt-0">
             <CompanyForm />
+          </TabsContent>
+          
+          <TabsContent value="smart-data" className="mt-0">
+            <SmartDataTab />
           </TabsContent>
         </Tabs>
       </main>
