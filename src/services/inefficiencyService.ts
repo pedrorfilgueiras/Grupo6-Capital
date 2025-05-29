@@ -1,4 +1,3 @@
-
 import { InefficientyLog, InefficientyEntry, InefficientyVersion, VersionChange } from './inefficiencyTypes';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
@@ -245,8 +244,8 @@ export const getLogVersions = async (logId: string): Promise<InefficientyVersion
     return versions?.map(version => ({
       id: version.id,
       logId: version.log_id,
-      entries: typeof version.entries === 'string' ? JSON.parse(version.entries) : version.entries as InefficientyEntry[],
-      changes: typeof version.changes === 'string' ? JSON.parse(version.changes) : version.changes as VersionChange[],
+      entries: typeof version.entries === 'string' ? JSON.parse(version.entries) : (version.entries as unknown) as InefficientyEntry[],
+      changes: typeof version.changes === 'string' ? JSON.parse(version.changes) : (version.changes as unknown) as VersionChange[],
       createdAt: version.created_at,
       createdBy: version.created_by,
       description: version.description
