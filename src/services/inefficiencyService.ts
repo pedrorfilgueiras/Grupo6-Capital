@@ -210,8 +210,8 @@ export const saveLogVersion = async (version: InefficientyVersion): Promise<Inef
       .insert({
         id: versionToSave.id,
         log_id: versionToSave.logId,
-        entries: versionToSave.entries,
-        changes: versionToSave.changes,
+        entries: JSON.stringify(versionToSave.entries),
+        changes: JSON.stringify(versionToSave.changes),
         created_at: versionToSave.created_at,
         created_by: versionToSave.createdBy,
         description: versionToSave.description
@@ -245,8 +245,8 @@ export const getLogVersions = async (logId: string): Promise<InefficientyVersion
     return versions?.map(version => ({
       id: version.id,
       logId: version.log_id,
-      entries: version.entries,
-      changes: version.changes,
+      entries: typeof version.entries === 'string' ? JSON.parse(version.entries) : version.entries as InefficientyEntry[],
+      changes: typeof version.changes === 'string' ? JSON.parse(version.changes) : version.changes as VersionChange[],
       createdAt: version.created_at,
       createdBy: version.created_by,
       description: version.description
