@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
-import { Plus, FileText, Wand, History, Edit2 } from 'lucide-react';
+import { Plus, FileText, Wand, History, Edit2, Download } from 'lucide-react';
 import { InefficientyLog, InefficientyEntry } from '@/services/inefficiencyTypes';
 import { 
   saveInefficientyLog, 
@@ -14,6 +14,7 @@ import {
   deleteInefficientyLog 
 } from '@/services/inefficiencyService';
 import { getCompanies } from '@/services/companyService';
+import { getSmartDataCompanies, saveCompanyToStorage } from '@/services/smartDataService';
 import { useQuery } from '@tanstack/react-query';
 import InefficientyLogEditor from './InefficientyLogEditor';
 import InefficientyVersionHistory from './InefficientyVersionHistory';
@@ -34,6 +35,14 @@ const InefficientyLogManager: React.FC = () => {
     queryKey: ['companies'],
     queryFn: getCompanies,
   });
+
+  // Carregar empresas dos dados inteligentes ao montar o componente
+  useEffect(() => {
+    const smartCompanies = getSmartDataCompanies();
+    smartCompanies.forEach(company => {
+      saveCompanyToStorage(company);
+    });
+  }, []);
 
   useEffect(() => {
     if (selectedCompanyId) {
@@ -228,9 +237,44 @@ const InefficientyLogManager: React.FC = () => {
       if (selectedLog?.id === logId) {
         setSelectedLog(null);
       }
+      toast({
+        title: "Log excluído",
+        description: "O log foi excluído com sucesso."
+      });
     } catch (error) {
       console.error('Erro ao excluir log:', error);
     }
+  };
+
+  const handleExportLog = (log: InefficientyLog) => {
+    const exportData = {
+      titulo: log.title,
+      empresa: companies.find(c => c.id === log.companyId)?.razaoSocial || 'N/A',
+      dataCreacao: new Date(log.createdAt).toLocaleDateString('pt-BR'),
+      versao: log.currentVersion || 1,
+      ineficiencias: log.entries.map(entry => ({
+        descricao: entry.description,
+        categoria: entry.category,
+        severidade: entry.severity,
+        status: entry.status,
+        fonte: entry.source
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `log-ineficiencias-${log.title.replace(/\s+/g, '-').toLowerCase()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export realizado",
+      description: "Log exportado em formato JSON."
+    });
   };
 
   if (showHistory) {
@@ -248,6 +292,10 @@ const InefficientyLogManager: React.FC = () => {
         log={selectedLog}
         onSave={handleLogSaved}
         onViewHistory={handleViewHistory}
+        onBack={() => {
+          setSelectedLog(null);
+          setActiveTab('list');
+        }}
       />
     );
   }
@@ -340,7 +388,16 @@ const InefficientyLogManager: React.FC = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                onClick={() => handleExportLog(log)}
+                                title="Exportar log"
+                              >
+                                <Download className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
                                 onClick={() => handleViewHistory(log.id)}
+                                title="Ver histórico"
                               >
                                 <History className="h-4 w-4" />
                               </Button>
@@ -348,8 +405,18 @@ const InefficientyLogManager: React.FC = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleEditLog(log)}
+                                title="Editar log"
                               >
                                 <Edit2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleDeleteLog(log.id)}
+                                className="text-red-600 hover:text-red-800"
+                                title="Excluir log"
+                              >
+                                <FileText className="h-4 w-4" />
                               </Button>
                             </div>
                           </div>

@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/use-toast';
-import { Plus, Edit2, Trash2, Save, History, Wand } from 'lucide-react';
+import { Plus, Edit2, Trash2, Save, History, Wand, ArrowLeft } from 'lucide-react';
 import { InefficientyLog, InefficientyEntry, INEFFICIENCY_CATEGORIES } from '@/services/inefficiencyTypes';
 import { saveInefficientyLog, compareVersions, saveLogVersion } from '@/services/inefficiencyService';
 
@@ -15,12 +15,14 @@ interface InefficientyLogEditorProps {
   log: InefficientyLog;
   onSave: (log: InefficientyLog) => void;
   onViewHistory: (logId: string) => void;
+  onBack: () => void;
 }
 
 const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
   log,
   onSave,
-  onViewHistory
+  onViewHistory,
+  onBack
 }) => {
   const [editingLog, setEditingLog] = useState<InefficientyLog>(log);
   const [editingEntry, setEditingEntry] = useState<InefficientyEntry | null>(null);
@@ -31,6 +33,13 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
     status: 'Identificada' as const
   });
   const [isAddingEntry, setIsAddingEntry] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    // Verificar se há mudanças comparando com o log original
+    const hasLogChanges = JSON.stringify(editingLog) !== JSON.stringify(log);
+    setHasChanges(hasLogChanges);
+  }, [editingLog, log]);
 
   const handleSaveLog = async () => {
     try {
@@ -57,6 +66,7 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
       });
       
       onSave(savedLog);
+      setHasChanges(false);
       toast({
         title: "Log salvo com sucesso",
         description: "As alterações foram registradas no histórico."
@@ -72,6 +82,15 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
   };
 
   const handleAddEntry = () => {
+    if (!newEntryForm.description.trim()) {
+      toast({
+        title: "Descrição obrigatória",
+        description: "Por favor, insira uma descrição para a ineficiência.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     const newEntry: InefficientyEntry = {
       id: crypto.randomUUID(),
       description: newEntryForm.description,
@@ -142,14 +161,24 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
       <Card>
         <CardHeader>
           <div className="flex justify-between items-start">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Edit2 className="h-5 w-5" />
-                Editor de Log de Ineficiências
-              </CardTitle>
-              <CardDescription>
-                Edite manualmente o log e categorize as ineficiências por área
-              </CardDescription>
+            <div className="flex items-center gap-4">
+              <Button
+                variant="outline"
+                onClick={onBack}
+                className="flex items-center gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Voltar
+              </Button>
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Edit2 className="h-5 w-5" />
+                  Editor de Log de Ineficiências
+                </CardTitle>
+                <CardDescription>
+                  Edite manualmente o log e categorize as ineficiências por área
+                </CardDescription>
+              </div>
             </div>
             <div className="flex gap-2">
               <Button
@@ -162,10 +191,11 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
               </Button>
               <Button
                 onClick={handleSaveLog}
+                disabled={!hasChanges}
                 className="flex items-center gap-2"
               >
                 <Save className="h-4 w-4" />
-                Salvar
+                {hasChanges ? 'Salvar Alterações' : 'Salvo'}
               </Button>
             </div>
           </div>
@@ -179,6 +209,19 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
                 onChange={(e) => setEditingLog({ ...editingLog, title: e.target.value })}
                 placeholder="Digite o título do log"
               />
+            </div>
+            
+            {/* Informações do log */}
+            <div className="flex gap-4 text-sm text-muted-foreground">
+              <div>
+                <strong>Criado em:</strong> {new Date(editingLog.createdAt).toLocaleString('pt-BR')}
+              </div>
+              <div>
+                <strong>Última atualização:</strong> {new Date(editingLog.updatedAt).toLocaleString('pt-BR')}
+              </div>
+              <div>
+                <strong>Versão:</strong> {editingLog.currentVersion || 1}
+              </div>
             </div>
           </div>
         </CardContent>
@@ -202,14 +245,18 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
           <div className="space-y-4">
             {/* Formulário para nova entrada */}
             {isAddingEntry && (
-              <Card className="border-dashed">
+              <Card className="border-dashed border-2">
                 <CardContent className="pt-6">
                   <div className="space-y-4">
-                    <Textarea
-                      placeholder="Descreva a ineficiência identificada..."
-                      value={newEntryForm.description}
-                      onChange={(e) => setNewEntryForm({ ...newEntryForm, description: e.target.value })}
-                    />
+                    <div>
+                      <label className="text-sm font-medium">Descrição da Ineficiência</label>
+                      <Textarea
+                        placeholder="Descreva a ineficiência identificada..."
+                        value={newEntryForm.description}
+                        onChange={(e) => setNewEntryForm({ ...newEntryForm, description: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
@@ -270,6 +317,7 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
                     
                     <div className="flex gap-2">
                       <Button onClick={handleAddEntry} disabled={!newEntryForm.description.trim()}>
+                        <Plus className="h-4 w-4 mr-2" />
                         Adicionar
                       </Button>
                       <Button variant="outline" onClick={() => setIsAddingEntry(false)}>
@@ -300,6 +348,7 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
                             variant="ghost"
                             size="sm"
                             onClick={() => setEditingEntry(entry)}
+                            title="Editar entrada"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -308,6 +357,7 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
                             size="sm"
                             onClick={() => handleDeleteEntry(entry.id)}
                             className="text-red-600 hover:text-red-800"
+                            title="Excluir entrada"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -325,8 +375,22 @@ const InefficientyLogEditor: React.FC<InefficientyLogEditorProps> = ({
                           {entry.status}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
-                          {entry.source === 'IA' ? 'Gerado por IA' : 'Manual'}
+                          {entry.source === 'IA' ? (
+                            <>
+                              <Wand className="h-3 w-3 mr-1" />
+                              Gerado por IA
+                            </>
+                          ) : (
+                            'Manual'
+                          )}
                         </Badge>
+                      </div>
+                      
+                      <div className="text-xs text-muted-foreground">
+                        Criado em: {new Date(entry.createdAt).toLocaleString('pt-BR')}
+                        {entry.updatedAt !== entry.createdAt && (
+                          <> | Atualizado em: {new Date(entry.updatedAt).toLocaleString('pt-BR')}</>
+                        )}
                       </div>
                     </div>
                   )}
@@ -358,62 +422,76 @@ const EditEntryForm: React.FC<{
 
   return (
     <div className="space-y-4">
-      <Textarea
-        value={editingEntry.description}
-        onChange={(e) => setEditingEntry({ ...editingEntry, description: e.target.value })}
-        placeholder="Descrição da ineficiência..."
-      />
+      <div>
+        <label className="text-sm font-medium">Descrição</label>
+        <Textarea
+          value={editingEntry.description}
+          onChange={(e) => setEditingEntry({ ...editingEntry, description: e.target.value })}
+          placeholder="Descrição da ineficiência..."
+          className="mt-1"
+        />
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Select
-          value={editingEntry.category}
-          onValueChange={(value) => setEditingEntry({ ...editingEntry, category: value as any })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {INEFFICIENCY_CATEGORIES.map(cat => (
-              <SelectItem key={cat.value} value={cat.value}>
-                {cat.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div>
+          <label className="text-sm font-medium">Categoria</label>
+          <Select
+            value={editingEntry.category}
+            onValueChange={(value) => setEditingEntry({ ...editingEntry, category: value as any })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {INEFFICIENCY_CATEGORIES.map(cat => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         
-        <Select
-          value={editingEntry.severity}
-          onValueChange={(value) => setEditingEntry({ ...editingEntry, severity: value as any })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Baixa">Baixa</SelectItem>
-            <SelectItem value="Média">Média</SelectItem>
-            <SelectItem value="Alta">Alta</SelectItem>
-            <SelectItem value="Crítica">Crítica</SelectItem>
-          </SelectContent>
-        </Select>
+        <div>
+          <label className="text-sm font-medium">Severidade</label>
+          <Select
+            value={editingEntry.severity}
+            onValueChange={(value) => setEditingEntry({ ...editingEntry, severity: value as any })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Baixa">Baixa</SelectItem>
+              <SelectItem value="Média">Média</SelectItem>
+              <SelectItem value="Alta">Alta</SelectItem>
+              <SelectItem value="Crítica">Crítica</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         
-        <Select
-          value={editingEntry.status}
-          onValueChange={(value) => setEditingEntry({ ...editingEntry, status: value as any })}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Identificada">Identificada</SelectItem>
-            <SelectItem value="Em Análise">Em Análise</SelectItem>
-            <SelectItem value="Em Resolução">Em Resolução</SelectItem>
-            <SelectItem value="Resolvida">Resolvida</SelectItem>
-          </SelectContent>
-        </Select>
+        <div>
+          <label className="text-sm font-medium">Status</label>
+          <Select
+            value={editingEntry.status}
+            onValueChange={(value) => setEditingEntry({ ...editingEntry, status: value as any })}
+          >
+            <SelectTrigger>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Identificada">Identificada</SelectItem>
+              <SelectItem value="Em Análise">Em Análise</SelectItem>
+              <SelectItem value="Em Resolução">Em Resolução</SelectItem>
+              <SelectItem value="Resolvida">Resolvida</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
       <div className="flex gap-2">
-        <Button onClick={() => onSave(editingEntry)}>
+        <Button onClick={() => onSave(editingEntry)} disabled={!editingEntry.description.trim()}>
+          <Save className="h-4 w-4 mr-2" />
           Salvar
         </Button>
         <Button variant="outline" onClick={onCancel}>
