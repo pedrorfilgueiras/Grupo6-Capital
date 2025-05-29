@@ -5,7 +5,7 @@ import { CompanyForm } from '@/components/company';
 import SearchFundInfo from '@/components/SearchFundInfo';
 import SmartDataTab from '@/components/SmartDataTab';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ClipboardIcon, InfoIcon, SearchIcon, Database } from 'lucide-react';
+import { ClipboardIcon, InfoIcon, SearchIcon, Database, Edit2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
