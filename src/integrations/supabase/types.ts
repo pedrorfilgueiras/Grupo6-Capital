@@ -123,6 +123,124 @@ export type Database = {
         }
         Relationships: []
       }
+      inefficiency_entries: {
+        Row: {
+          category: string
+          created_at: number
+          created_by: string | null
+          description: string
+          id: string
+          log_id: string
+          severity: string
+          source: string
+          status: string
+          updated_at: number
+        }
+        Insert: {
+          category: string
+          created_at: number
+          created_by?: string | null
+          description: string
+          id?: string
+          log_id: string
+          severity: string
+          source: string
+          status: string
+          updated_at: number
+        }
+        Update: {
+          category?: string
+          created_at?: number
+          created_by?: string | null
+          description?: string
+          id?: string
+          log_id?: string
+          severity?: string
+          source?: string
+          status?: string
+          updated_at?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inefficiency_entries_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "inefficiency_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      inefficiency_logs: {
+        Row: {
+          ai_prompt: string | null
+          ai_response: string | null
+          company_id: string
+          created_at: number
+          current_version: number | null
+          id: string
+          title: string
+          updated_at: number
+        }
+        Insert: {
+          ai_prompt?: string | null
+          ai_response?: string | null
+          company_id: string
+          created_at: number
+          current_version?: number | null
+          id?: string
+          title: string
+          updated_at: number
+        }
+        Update: {
+          ai_prompt?: string | null
+          ai_response?: string | null
+          company_id?: string
+          created_at?: number
+          current_version?: number | null
+          id?: string
+          title?: string
+          updated_at?: number
+        }
+        Relationships: []
+      }
+      inefficiency_versions: {
+        Row: {
+          changes: Json
+          created_at: number
+          created_by: string
+          description: string
+          entries: Json
+          id: string
+          log_id: string
+        }
+        Insert: {
+          changes: Json
+          created_at: number
+          created_by: string
+          description: string
+          entries: Json
+          id?: string
+          log_id: string
+        }
+        Update: {
+          changes?: Json
+          created_at?: number
+          created_by?: string
+          description?: string
+          entries?: Json
+          id?: string
+          log_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inefficiency_versions_log_id_fkey"
+            columns: ["log_id"]
+            isOneToOne: false
+            referencedRelation: "inefficiency_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       modulo_dd: {
         Row: {
           atualizado_em: number | null

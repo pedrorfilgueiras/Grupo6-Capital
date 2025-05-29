@@ -38,12 +38,76 @@ export const getSmartDataCompanies = (): SmartDataCompany[] => {
       growth: 25,
       ebitdaMargin: 3.73,
       riskLevel: 'Médio'
+    },
+    {
+      id: 'ccel',
+      name: 'Cryo-Cell International Inc.',
+      ticker: 'CCEL',
+      revenue: 67.8,
+      growth: 8,
+      ebitdaMargin: 15.2,
+      riskLevel: 'Baixo'
+    },
+    {
+      id: 'dffn',
+      name: 'Diffusion Pharmaceuticals Inc.',
+      ticker: 'DFFN',
+      revenue: 2.1,
+      growth: -12,
+      ebitdaMargin: -450.0,
+      riskLevel: 'Alto'
+    },
+    {
+      id: 'atxi',
+      name: 'Avenue Therapeutics Inc.',
+      ticker: 'ATXI',
+      revenue: 0.5,
+      growth: -25,
+      ebitdaMargin: -800.0,
+      riskLevel: 'Crítico'
+    },
+    {
+      id: 'rgnx',
+      name: 'REGENXBIO Inc.',
+      ticker: 'RGNX',
+      revenue: 89.3,
+      growth: 35,
+      ebitdaMargin: -15.6,
+      riskLevel: 'Médio'
+    },
+    {
+      id: 'cgem',
+      name: 'Cullinan Oncology Inc.',
+      ticker: 'CGEM',
+      revenue: 12.4,
+      growth: 180,
+      ebitdaMargin: -120.0,
+      riskLevel: 'Alto'
+    },
+    {
+      id: 'aneb',
+      name: 'Anebulo Pharmaceuticals Inc.',
+      ticker: 'ANEB',
+      revenue: 3.2,
+      growth: 45,
+      ebitdaMargin: -250.0,
+      riskLevel: 'Alto'
+    },
+    {
+      id: 'fbrx',
+      name: 'Forte Biosciences Inc.',
+      ticker: 'FBRX',
+      revenue: 1.8,
+      growth: -30,
+      ebitdaMargin: -400.0,
+      riskLevel: 'Crítico'
     }
   ];
 };
 
-export const saveCompanyToStorage = (company: SmartDataCompany): void => {
+export const saveCompanyToStorage = async (company: SmartDataCompany): Promise<void> => {
   try {
+    // Primeiro verificar se a empresa já existe no localStorage
     const companies = JSON.parse(localStorage.getItem('companies') || '[]');
     const existingIndex = companies.findIndex((c: any) => c.id === company.id);
     
@@ -64,5 +128,13 @@ export const saveCompanyToStorage = (company: SmartDataCompany): void => {
     localStorage.setItem('companies', JSON.stringify(companies));
   } catch (error) {
     console.error('Erro ao salvar empresa:', error);
+  }
+};
+
+// Função para salvar todas as empresas dos dados inteligentes
+export const saveAllSmartCompaniesToStorage = async (): Promise<void> => {
+  const smartCompanies = getSmartDataCompanies();
+  for (const company of smartCompanies) {
+    await saveCompanyToStorage(company);
   }
 };

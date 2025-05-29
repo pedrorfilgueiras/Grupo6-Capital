@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,7 @@ import {
   deleteInefficientyLog 
 } from '@/services/inefficiencyService';
 import { getCompanies } from '@/services/companyService';
-import { getSmartDataCompanies, saveCompanyToStorage } from '@/services/smartDataService';
+import { saveAllSmartCompaniesToStorage } from '@/services/smartDataService';
 import { useQuery } from '@tanstack/react-query';
 import InefficientyLogEditor from './InefficientyLogEditor';
 import InefficientyVersionHistory from './InefficientyVersionHistory';
@@ -38,10 +37,10 @@ const InefficientyLogManager: React.FC = () => {
 
   // Carregar empresas dos dados inteligentes ao montar o componente
   useEffect(() => {
-    const smartCompanies = getSmartDataCompanies();
-    smartCompanies.forEach(company => {
-      saveCompanyToStorage(company);
-    });
+    const loadSmartCompanies = async () => {
+      await saveAllSmartCompaniesToStorage();
+    };
+    loadSmartCompanies();
   }, []);
 
   useEffect(() => {
@@ -237,10 +236,6 @@ const InefficientyLogManager: React.FC = () => {
       if (selectedLog?.id === logId) {
         setSelectedLog(null);
       }
-      toast({
-        title: "Log excluído",
-        description: "O log foi excluído com sucesso."
-      });
     } catch (error) {
       console.error('Erro ao excluir log:', error);
     }
