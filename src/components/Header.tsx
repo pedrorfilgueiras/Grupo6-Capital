@@ -40,48 +40,56 @@ ListItem.displayName = "ListItem"
 
 const Header = () => {
   return (
-    <header className="bg-g6-gray-dark text-white">
-      <div className="container mx-auto py-4 px-4 md:px-0">
-        <div className="flex justify-between items-center">
-          <Link to="/" className="text-xl font-bold">Grupo6 Capital</Link>
-
-          <NavigationMenu>
-            <NavigationMenuList>
-              <NavigationMenuItem>
-                <Link to="/" className={cn(navigationMenuTriggerStyle(), "bg-transparent hover:bg-white/10 text-white")}>
-                  Home
-                </Link>
-              </NavigationMenuItem>
-              
-              <NavigationMenuItem>
-                <NavigationMenuTrigger className="bg-transparent hover:bg-white/10 text-white">
-                  Ferramentas
-                </NavigationMenuTrigger>
-                <NavigationMenuContent>
-                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
-                    <ListItem
-                      href="/dashboard"
-                      title="Dashboard"
-                    >
-                      Visualize e gerencie as empresas cadastradas.
-                    </ListItem>
-                    <ListItem
-                      href="/due-diligence"
-                      title="Due Diligence"
-                    >
-                      Gerencie o processo de due diligence das empresas.
-                    </ListItem>
-                    <ListItem
-                      href="/data-integration"
-                      title="Painel de Dados"
-                    >
-                      Dados integrados, geração de prompts e exportação.
-                    </ListItem>
-                  </ul>
-                </NavigationMenuContent>
-              </NavigationMenuItem>
-            </NavigationMenuList>
-          </NavigationMenu>
+    <header className="bg-white shadow-sm border-b">
+      <div className="container mx-auto px-4 py-4">
+        <div className="flex items-center justify-between">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-g6-blue rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">G6</span>
+            </div>
+            <span className="text-xl font-bold text-g6-blue">Grupo6 Capital</span>
+          </Link>
+          
+          <nav className="hidden md:flex items-center space-x-6">
+            <Link 
+              to="/" 
+              className="text-gray-600 hover:text-g6-blue transition-colors"
+            >
+              Início
+            </Link>
+            <Link 
+              to="/dashboard" 
+              className="text-gray-600 hover:text-g6-blue transition-colors"
+            >
+              Dashboard
+            </Link>
+            <Link 
+              to="/due-diligence" 
+              className="text-gray-600 hover:text-g6-blue transition-colors"
+            >
+              Due Diligence
+            </Link>
+            <Link 
+              to="/data-integration" 
+              className="text-gray-600 hover:text-g6-blue transition-colors"
+            >
+              Dados Integrados
+            </Link>
+            <Link 
+              to="/inefficiency-logs" 
+              className="text-gray-600 hover:text-g6-blue transition-colors"
+            >
+              Log de Ineficiências
+            </Link>
+          </nav>
+          
+          <div className="md:hidden">
+            <button className="text-gray-600">
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </header>

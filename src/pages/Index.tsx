@@ -31,6 +31,22 @@ const Index = () => {
           </Link>
         </div>
         
+        {/* Banner do Log de Ineficiências */}
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-4 flex flex-col md:flex-row items-center justify-between">
+          <div className="mb-4 md:mb-0">
+            <h2 className="text-xl font-bold text-amber-800">Novo: Log de Ineficiências (Semana 7)</h2>
+            <p className="text-amber-700 mt-1">
+              Identifique, categorize e gerencie ineficiências com IA. Inclui histórico de versões e edição manual.
+            </p>
+          </div>
+          <Link to="/inefficiency-logs">
+            <Button variant="outline" className="w-full md:w-auto border-amber-600 text-amber-800 hover:bg-amber-100">
+              <Edit2 className="h-4 w-4 mr-2" />
+              Gerenciar Logs
+            </Button>
+          </Link>
+        </div>
+        
         {/* Banner do Novo Painel de Dados */}
         <div className="bg-g6-blue/10 border border-g6-blue/20 rounded-lg p-6 mb-8 flex flex-col md:flex-row items-center justify-between">
           <div className="mb-4 md:mb-0">
