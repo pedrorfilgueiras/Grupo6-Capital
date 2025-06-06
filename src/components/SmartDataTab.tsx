@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FileSpreadsheet, FileText, FileDown, Database } from 'lucide-react';
+import { FileSpreadsheet, FileText, FileDown, Database, Bot, RefreshCw } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 const SmartDataTab = () => {
@@ -66,6 +66,31 @@ IRadimed Corporation (IRMD): Última colocação devido ao crescimento moderado 
 Conclusão
 A LifeMD destaca-se como a opção mais alinhada aos critérios de search funds, combinando crescimento acelerado, melhoria de rentabilidade e redução de riscos financeiros. A Talkspace, embora em estágio anterior de maturidade, oferece exposição a um mercado em expansão, enquanto a IRadimed serve como contraponto conservador, adequado para perfis de menor apetite a risco. Dados limitados sobre a Talkspace e ausência de métricas precisas de valuation exigem cautela na análise comparativa final.`
   };
+
+  // Strategy simulation data
+  const strategySimulation = {
+    prompt: `Simule três cenários estratégicos de expansão para uma empresa SaaS B2B no setor de saúde, com ARR atual de R$ 26,4 milhões e margem EBITDA de 18%. Considere:
+1. Um cenário orgânico baseado em crescimento por marketing digital e canais de vendas próprios;
+2. Um cenário inorgânico via aquisição de concorrente regional com sinergias operacionais;
+3. Um cenário híbrido combinando crescimento interno e fusão parcial.
+
+Para cada cenário, apresente:
+- Estratégia central
+- Premissas de crescimento
+- Principais riscos
+- Projeção de ARR e margem EBITDA em dois anos
+- Recomendação final da IA com base nos dados fornecidos`,
+
+    response: `**Análise de Expansão – IA GPT-4o**
+
+**🟦 Cenário Orgânico:** Crescimento por canais próprios, SEO, CRM e inside sales. Premissas: +20% em marketing, churn 5%, crescimento linear de 30% a.a. Resultado: ARR R$ 34M em 2 anos, margem EBITDA 22%.
+
+**🟥 Cenário Inorgânico:** Aquisição com múltiplo EV/Receita de 1,4x, sinergia de 12%, integração em 9 meses. ARR salta para R$ 50M no ano 1, mas margem EBITDA cai para 12% no início.
+
+**🟨 Cenário Híbrido:** Expansão orgânica no ano 1 + aquisição de carteira no ano 2. NRR 135%, ARR R$ 42M, margem EBITDA estável em 21%.
+
+**✅ Recomendação da IA:** Priorizar cenário híbrido por balancear escalabilidade e eficiência operacional com menor risco de integração.`
+  };
   
   // Companies data in CSV format
   const companiesDataCSV = `Company,Revenue (MM USD),Growth (%),EBITDA Margin (%),Risk Level
@@ -74,7 +99,7 @@ IRadimed (IRMD),73.2,12,N/A,Baixo
 Talkspace (TALK),187.6,25,3.73,Médio`;
   
   // Function to export data
-  const handleExport = (type: 'prompt' | 'analysis' | 'data') => {
+  const handleExport = (type: 'prompt' | 'analysis' | 'data' | 'strategy-prompt' | 'strategy-response') => {
     let content = '';
     let filename = '';
     
@@ -87,6 +112,12 @@ Talkspace (TALK),187.6,25,3.73,Médio`;
     } else if (type === 'data') {
       content = companiesDataCSV;
       filename = `dados-empresas.${exportFormat}`;
+    } else if (type === 'strategy-prompt') {
+      content = strategySimulation.prompt;
+      filename = `prompt-simulacao-estrategia.${exportFormat}`;
+    } else if (type === 'strategy-response') {
+      content = strategySimulation.response;
+      filename = `simulacao-estrategia-response.${exportFormat}`;
     }
     
     const blob = new Blob([content], { type: `text/${exportFormat}` });
@@ -104,6 +135,13 @@ Talkspace (TALK),187.6,25,3.73,Médio`;
       description: `Arquivo ${filename} gerado com sucesso!`
     });
   };
+
+  const handleRegenerateStrategy = () => {
+    toast({
+      title: "Regenerando análise...",
+      description: "Simulando nova análise estratégica com IA (funcionalidade em desenvolvimento)"
+    });
+  };
   
   return (
     <Card className="w-full shadow-md">
@@ -113,13 +151,13 @@ Talkspace (TALK),187.6,25,3.73,Médio`;
           Dados Inteligentes para Análise
         </CardTitle>
         <CardDescription>
-          Análise financeira comparativa: LifeMD (LFMD), IRadimed Corporation (IRMD) e Talkspace Inc. (TALK)
+          Análise financeira comparativa e simulação estratégica com IA
         </CardDescription>
       </CardHeader>
       
       <CardContent>
         <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4 grid w-full grid-cols-3">
+          <TabsList className="mb-4 grid w-full grid-cols-4">
             <TabsTrigger value="analysis">
               Análise Financeira
             </TabsTrigger>
@@ -128,6 +166,10 @@ Talkspace (TALK),187.6,25,3.73,Médio`;
             </TabsTrigger>
             <TabsTrigger value="data">
               Dados Resumidos
+            </TabsTrigger>
+            <TabsTrigger value="strategy">
+              <Bot className="h-4 w-4 mr-1" />
+              Simulação com IA
             </TabsTrigger>
           </TabsList>
           
@@ -370,6 +412,98 @@ Talkspace (TALK),187.6,25,3.73,Médio`;
                 <FileDown className="mr-2 h-4 w-4" />
                 Baixar Dados
               </Button>
+            </div>
+          </TabsContent>
+
+          {/* Strategy Simulation Tab */}
+          <TabsContent value="strategy" className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-md">
+              <h3 className="text-lg font-medium mb-2 flex items-center gap-2">
+                <Bot className="h-5 w-5" />
+                Simulação de Estratégia com IA
+              </h3>
+              
+              <div className="space-y-4">
+                {/* Prompt Section */}
+                <div className="bg-slate-100 p-4 rounded-md">
+                  <h4 className="font-medium mb-2">🧠 Prompt simulado para o app:</h4>
+                  <pre className="whitespace-pre-wrap text-sm">
+                    {strategySimulation.prompt}
+                  </pre>
+                </div>
+
+                {/* AI Response Section */}
+                <div className="bg-gray-50 border-l-4 border-g6-blue p-4 rounded-md">
+                  <h4 className="font-medium mb-3">✅ Resposta simulada (exibida no app, como se viesse do ChatGPT):</h4>
+                  <div className="prose max-w-none">
+                    {strategySimulation.response.split('\n\n').map((paragraph, index) => (
+                      <p key={index} className="mb-2 text-sm leading-relaxed">{paragraph}</p>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Regenerate Button */}
+                <div className="flex justify-center pt-4">
+                  <Button 
+                    onClick={handleRegenerateStrategy}
+                    variant="outline"
+                    className="border-g6-blue text-g6-blue hover:bg-g6-blue hover:text-white"
+                  >
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Regerar Análise com IA
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+              <div className="flex items-center space-x-4">
+                <span className="text-sm font-medium">Formato de Exportação:</span>
+                <div className="flex space-x-4">
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="radio"
+                      id="format-csv-strategy"
+                      checked={exportFormat === 'csv'}
+                      onChange={() => setExportFormat('csv')}
+                      className="h-4 w-4 text-g6-blue"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <FileSpreadsheet className="h-4 w-4" />
+                      <label htmlFor="format-csv-strategy" className="text-sm">CSV</label>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input 
+                      type="radio"
+                      id="format-txt-strategy"
+                      checked={exportFormat === 'txt'}
+                      onChange={() => setExportFormat('txt')}
+                      className="h-4 w-4 text-g6-blue"
+                    />
+                    <div className="flex items-center space-x-2">
+                      <FileText className="h-4 w-4" />
+                      <label htmlFor="format-txt-strategy" className="text-sm">TXT</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex space-x-2 ml-auto">
+                <Button 
+                  onClick={() => handleExport('strategy-prompt')}
+                  variant="outline"
+                >
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Baixar Prompt
+                </Button>
+                <Button 
+                  onClick={() => handleExport('strategy-response')}
+                >
+                  <FileDown className="mr-2 h-4 w-4" />
+                  Baixar Resposta
+                </Button>
+              </div>
             </div>
           </TabsContent>
         </Tabs>
